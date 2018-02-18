@@ -4,6 +4,8 @@ extern crate failure;
 pub mod op;
 pub mod expr;
 pub mod opers;
+#[cfg(test)]
+mod tests;
 
 pub use expr::{Context, Expr};
 pub use op::Op;
