@@ -135,7 +135,6 @@ fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
 	let mut tokens: Vec<Token> = Vec::new();
 	let raw = to_tokens(raw.trim())?;
 	for token in raw {
-		println!("Got token {:?}", token);
 		match token {
 			Token::Value(val) => tokens.push(Token::Value(val)),
 			Token::Name(name) => tokens.push(Token::Name(name)),
@@ -166,8 +165,6 @@ fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
 				}
 			},
 		}
-		println!("Ops: {:?}", ops);
-		println!("Tokens: {:?}\n", tokens);
 	}
 	while !ops.is_empty() {
 		tokens.push(Token::Op(ops.pop().unwrap()));
@@ -179,10 +176,8 @@ fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
 impl Expr {
 	pub fn from(raw: &str) -> Result<Expr, Error> {
 		let tokens = to_postfix(raw)?;
-		println!("\nTokens: {:?}", tokens);
 		let mut stack: Vec<Expr> = Vec::new();
 		for token in tokens {
-			println!("Stack is {:?}", stack);
 			match token {
 				Token::Value(val) => {
 					stack.push(Expr::Value(val))
