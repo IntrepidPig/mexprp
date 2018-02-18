@@ -1,161 +1,140 @@
 use op::Op;
+use opers::*;
 
 use failure::Error;
 use failure::err_msg;
 
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum Expr {
 	Value(f64),
-	Expr(Box<Oper>),
+	Expr(Box<Operation>),
 }
 
 #[derive(Debug, Fail)]
 #[fail(display = "Got unexpected token")]
 pub struct UnexpectedToken(String);
 
-impl Expr {
-	fn parse_token(raw: &str) -> Result<Option<Token>, Error> {
-		match raw {
-			"+" => Token::Op(Op::Add),
-			"-" => Token::Op(Op::Sub),
-			"*" => Token::Op(Op::Mul),
-			"/" => Token::Op(Op::Div),
-			"^" => Token::Op(Op::Pow),
-			"(" => Token::Op(Op::Open),
-			")" => Token::Op(Op::Close),
-			_ => {
-				if
-			}
-		}
-	}
-	
-	fn to_tokens(raw: &str, index: &mut usize) -> Result<Option<Token>, Error> {
-		if raw.len() == 0 {
-			return Ok(None);
-		}
-		#[derive(Debug, PartialEq, Copy, Clone)]
-		enum TokenType {
-			Num,
-			Op,
-		}
-		let mut tokentype = None;
-		let mut buf = String::with_capacity(4);
-		
-		fn get_ttype(c: char) -> Option<TokenType> {
-			match c {
-				'+' | '-' | '*' | '/' | '^' | '(' | ')' => Some(TokenType::Op),
-				' ' => None,
+#[derive(Debug, Fail)]
+#[fail(display = "Parenthesis didn't match")]
+pub struct MismatchedParenthesis;
+
+fn parse_token(raw: &str, ttype: TokenType) -> Result<Option<Token>, Error> {
+	Ok(match ttype {
+		TokenType::Op => {
+			Some(match raw {
+				"+" => Token::Op(Op::Add),
+				"-" => Token::Op(Op::Sub),
+				"*" => Token::Op(Op::Mul),
+				"/" => Token::Op(Op::Div),
+				"^" => Token::Op(Op::Pow),
+				"(" => Token::Op(Op::Open),
+				")" => Token::Op(Op::Close),
 				_ => {
-					if c.is_numeric() || c == '.' {
-						Some(TokenType::Num)
-					} else {
-						None
-					}
+					return Err(UnexpectedToken(raw.to_string()).into())
 				}
-			}
+			})
+		},
+		TokenType::Lit => {
+			Some(Token::Value(raw.parse()?))
+		},
+		TokenType::None => {
+			None
 		}
-		
-		fn str_to_token(raw: &str, ttype: TokenType) -> Result<Token, Error> {
-			match ttype {
-				TokenType::Num => {
-					Ok(Token::Value(raw.parse::<f64>()?))
-				},
-				TokenType::Op => {
-					use Op::*;
-					Ok(Token::Op(match raw {
-						"+" => Add,
-						"-" => Sub,
-						"*" => Mul,
-						"/" => Div,
-						"^" => Pow,
-						"(" => Open,
-						")" => Close,
-						_ => return Err(err_msg(format!("Unexpected operator string \"{}\"", raw)).into())
-					}))
-				}
-			}
-		}
-		
-		for c in raw.chars() {
-			println!("Char: {}\nRaw: \"{}\"\nOldType: {:?}\nNewType: {:?}\nBuf: {}\n", c, raw, tokentype, get_ttype(c), buf);
-			if let Some(new_ttype) = get_ttype(c) {
-				if new_ttype == TokenType::Op {
-					*index += 1;
-					return Ok(Some(str_to_token(&c.to_string(), new_ttype)?));
-				} else if let Some(old_ttype) = tokentype {
-					if new_ttype != old_ttype {
-						return Ok(Some(str_to_token(&buf, old_ttype)?))
-					} else {
-						buf.push(c);
-						*index += 1;
-					}
-				} else {
-					tokentype = Some(new_ttype);
-					buf.push(c);
-					*index += 1;
-				}
+	})
+}
+
+fn tokentype(raw: char) -> Result<TokenType, UnexpectedToken> {
+	match raw {
+		'+' | '-' | '*' | '/' | '^' | '(' | ')' => Ok(TokenType::Op),
+		_ => {
+			if raw.is_ascii_digit() || raw == '.' {
+				Ok(TokenType::Lit)
+			} else if raw.is_whitespace() {
+				Ok(TokenType::None)
 			} else {
-				*index += 1;
+				Err(UnexpectedToken(raw.to_string()))
 			}
 		}
-		
-		if let Some(ttype) = tokentype {
-			Ok(Some(str_to_token(&buf, ttype)?))
+	}
+}
+
+fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
+	let mut prevttype = TokenType::None;
+	let mut tbuf = String::new();
+	let mut tokens = Vec::new();
+	
+	for c in raw.chars() {
+		let ttype = tokentype(c)?;
+		if ttype == prevttype {
+			tbuf.push(c);
 		} else {
-			Ok(None)
+			if prevttype != TokenType::None {
+				tokens.push(parse_token(&tbuf, prevttype)?.unwrap());
+			}
+			tbuf.clear();
+			tbuf.push(c);
+			prevttype = ttype;
 		}
 	}
 	
-	fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
-		let mut index = 0;
-		let mut ops: Vec<Op> = Vec::new();
-		let mut nums: Vec<f64> = Vec::new();
-		let mut tokens: Vec<Token> = Vec::new();
-		let raw = raw.trim();
-		while let Some(token) = Expr::next_token(&raw[index..raw.len()], &mut index)? {
-			println!("Got token {:?}", token);
-			println!("Ops: {:?}", ops);
-			println!("Nums: {:?}", nums);
-			println!("Tokens: {:?}\n", tokens);
-			match token {
-				Token::Value(val) => tokens.push(Token::Value(val)),
-				Token::Op(op) => {
-					if !op.is_paren() {
-						while
-								if !ops.is_empty() {
-									(ops[ops.len() - 1].precedence() > op.precedence()) || (ops[ops.len() - 1].precedence() > op.precedence() && op.is_left_associative())
-								} else {
-									false
-								}
-										&& op != Op::Open {
+	if prevttype != TokenType::None {
+		tokens.push(parse_token(&tbuf, prevttype)?.unwrap());
+	}
+	
+	Ok(tokens)
+}
+
+fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
+	let mut index = 0;
+	let mut ops: Vec<Op> = Vec::new();
+	let mut nums: Vec<f64> = Vec::new();
+	let mut tokens: Vec<Token> = Vec::new();
+	let mut raw = to_tokens(raw.trim())?;
+	for token in raw {
+		println!("Got token {:?}", token);
+		match token {
+			Token::Value(val) => tokens.push(Token::Value(val)),
+			Token::Op(op) => {
+				match op {
+					Op::Open => {
+						ops.push(op);
+					},
+					Op::Close => {
+						while ops.last().unwrap() != &Op::Open {
 							tokens.push(Token::Op(ops.pop().unwrap()));
 						}
-						ops.push(op);
-					} else {
-						match op {
-							Op::Open => ops.push(op),
-							Op::Close => {
-								while ops[ops.len() - 1] != Op::Open {
-									tokens.push(Token::Op(ops.pop().unwrap()));
-								}
-								if ops.pop().unwrap() != Op::Open { return Err(err_msg("Mismatched parentheses").into()) };
+						ops.pop();
+					},
+					op => {
+						while let Some(op2) = ops.last().cloned() {
+							let cond1 = op2.precedence() > op.precedence();
+							let cond2 = op2.precedence() == op.precedence() && op.is_left_associative();
+							let cond3 = op2 != Op::Open;
+							if cond1 || cond2 && cond3 {
+								tokens.push(Token::Op(ops.pop().unwrap()))
+							} else {
+								break
 							}
-							_ => unreachable!()
 						}
-					}
+						ops.push(op);
+					},
 				}
 			}
 		}
-		for op in ops.into_iter() {
-			if op.is_paren() { return Err(err_msg("Mismatched parentheses").into()) };
-			tokens.push(Token::Op(op));
-		}
-		
-		Ok(tokens)
+		println!("Ops: {:?}", ops);
+		println!("Nums: {:?}", nums);
+		println!("Tokens: {:?}\n", tokens);
+	}
+	while !ops.is_empty() {
+		tokens.push(Token::Op(ops.pop().unwrap()));
 	}
 	
+	Ok(tokens)
+}
+
+impl Expr {
 	pub fn from(raw: &str) -> Result<Expr, Error> {
-		let mut tokens = Expr::to_postfix(raw)?;
+		let mut tokens = to_postfix(raw)?;
 		println!("\nTokens: {:?}", tokens);
 		let mut expr = Expr::Value(0.0);
 		let mut stack: Vec<Expr> = Vec::new();
@@ -168,12 +147,15 @@ impl Expr {
 				Token::Op(op) => {
 					let b = stack.pop().unwrap();
 					let a = stack.pop().unwrap();
-					let oper = Oper {
-						a,
-						op,
-						b
+					let oper: Box<Operation> = match op {
+						Op::Add => Box::new(Add { a, b }),
+						Op::Sub => Box::new(Sub { a, b }),
+						Op::Mul => Box::new(Mul { a, b }),
+						Op::Div => Box::new(Div { a, b }),
+						Op::Pow => Box::new(Pow { a, b }),
+						_ => { return Err(MismatchedParenthesis.into()) }
 					};
-					stack.push(Expr::Expr(Box::new(oper)));
+					stack.push(Expr::Expr(oper));
 				}
 			}
 		};
@@ -184,19 +166,14 @@ impl Expr {
 	pub fn to_string(&self) -> String {
 		match *self {
 			Expr::Value(val) => val.to_string(),
-			Expr::Expr(ref oper) => {
-				format!("({} {} {})", oper.a, oper.op.to_string(), oper.b)
-			}
+			Expr::Expr(ref oper) => { oper.to_string() }
 		}
 	}
 	
-	pub fn eval(&self) -> Result<f64, Error> {
+	pub fn eval(&self) -> f64 {
 		match *self {
-			Expr::Value(val) => Ok(val),
-			Expr::Expr(ref oper) => {
-				let expr = oper.eval()?;
-				return Ok(expr);
-			}
+			Expr::Value(val) => val,
+			Expr::Expr(ref oper) => oper.eval()
 		}
 	}
 }
@@ -208,24 +185,11 @@ impl fmt::Display for Expr {
 	}
 }
 
-#[derive(Debug, Clone)]
-pub struct Oper {
-	a: Expr,
-	op: Op,
-	b: Expr
-}
-
-impl Oper {
-	pub fn eval(&self) -> Result<f64, Error> {
-		match self.op {
-			Op::Add => Ok(self.a.eval()? + self.b.eval()?),
-			Op::Sub => Ok(self.a.eval()? - self.b.eval()?),
-			Op::Mul => Ok(self.a.eval()? * self.b.eval()?),
-			Op::Div => Ok(self.a.eval()? / self.b.eval()?),
-			Op::Pow => Ok(self.a.eval()?.powf(self.b.eval()?)),
-			_ => Err(err_msg("Got unexpected operator").into())
-		}
-	}
+#[derive(PartialEq)]
+enum TokenType {
+	Op,
+	Lit,
+	None,
 }
 
 #[derive(Debug, Clone)]

@@ -4,6 +4,7 @@ extern crate failure;
 
 mod op;
 mod expr;
+mod opers;
 
 use op::Op;
 use expr::Expr;
@@ -11,5 +12,5 @@ use expr::Expr;
 fn main() {
 	let raw_expr = std::env::args().nth(1).unwrap();
 	let expr = Expr::from(&raw_expr).unwrap();
-	println!("{} = {}", expr, expr.eval().unwrap());
+	println!("{} = {}", expr, expr.eval());
 }
