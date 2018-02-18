@@ -1,9 +1,8 @@
 [package]
 name = "mexprp"
-version = "0.1.0"
+version = "0.0.1"
 authors = ["Benny A <virusdownloader7@gmail.com>"]
 
 [dependencies]
 failure = "0.1"
 failure_derive = "0.1"
-nom = "1.0"
