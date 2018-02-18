@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use op::Op;
 use opers::*;
 
@@ -8,6 +10,7 @@ use failure::err_msg;
 pub enum Expr {
 	Value(f64),
 	Expr(Box<Operation>),
+	Var(String),
 }
 
 #[derive(Debug, Fail)]
@@ -17,6 +20,44 @@ pub struct UnexpectedToken(String);
 #[derive(Debug, Fail)]
 #[fail(display = "Parenthesis didn't match")]
 pub struct MismatchedParenthesis;
+
+#[derive(Debug, Fail)]
+#[fail(display = "Variable {} wasn't set to a value", name)]
+pub struct UninitializedVar {
+	name: String,
+}
+
+#[derive(Debug, Fail)]
+pub enum EvalError {
+	#[fail(display = "{}", error)]
+	UninitializedVar {
+		error: UninitializedVar
+	},
+}
+
+pub struct Context {
+	data: HashMap<String, Expr>,
+}
+
+impl Context {
+	pub fn new() -> Self {
+		Context {
+			data: HashMap::new()
+		}
+	}
+	
+	pub fn get(&self, name: &str) -> Option<&Expr> {
+		self.data.get(name)
+	}
+	
+	pub fn add<I: Into<Expr>>(&mut self, name: &str, val: I) {
+		self.data.insert(name.to_string(), val.into());
+	}
+	
+	pub fn inner(&mut self) -> &mut HashMap<String, Expr> {
+		&mut self.data
+	}
+}
 
 fn parse_token(raw: &str, ttype: TokenType) -> Result<Option<Token>, Error> {
 	Ok(match ttype {
@@ -37,6 +78,9 @@ fn parse_token(raw: &str, ttype: TokenType) -> Result<Option<Token>, Error> {
 		TokenType::Lit => {
 			Some(Token::Value(raw.parse()?))
 		},
+		TokenType::Name => {
+			Some(Token::Name(raw.to_string()))
+		},
 		TokenType::None => {
 			None
 		}
@@ -51,6 +95,8 @@ fn tokentype(raw: char) -> Result<TokenType, UnexpectedToken> {
 				Ok(TokenType::Lit)
 			} else if raw.is_whitespace() {
 				Ok(TokenType::None)
+			} else if raw.is_alphabetic() {
+				Ok(TokenType::Name)
 			} else {
 				Err(UnexpectedToken(raw.to_string()))
 			}
@@ -94,6 +140,7 @@ fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
 		println!("Got token {:?}", token);
 		match token {
 			Token::Value(val) => tokens.push(Token::Value(val)),
+			Token::Name(name) => tokens.push(Token::Name(name)),
 			Token::Op(op) => {
 				match op {
 					Op::Open => {
@@ -119,7 +166,7 @@ fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
 						ops.push(op);
 					},
 				}
-			}
+			},
 		}
 		println!("Ops: {:?}", ops);
 		println!("Nums: {:?}", nums);
@@ -145,8 +192,14 @@ impl Expr {
 					stack.push(Expr::Value(val))
 				},
 				Token::Op(op) => {
-					let b = stack.pop().unwrap();
-					let a = stack.pop().unwrap();
+					let b = match stack.pop() {
+						Some(v) => v,
+						None => return Err(err_msg("Expected an expression").into())
+					};
+					let a = match stack.pop() {
+						Some(v) => v,
+						None => return Err(err_msg("Expected an expression").into())
+					};
 					let oper: Box<Operation> = match op {
 						Op::Add => Box::new(Add { a, b }),
 						Op::Sub => Box::new(Sub { a, b }),
@@ -156,25 +209,52 @@ impl Expr {
 						_ => { return Err(MismatchedParenthesis.into()) }
 					};
 					stack.push(Expr::Expr(oper));
+				},
+				Token::Name(name) => {
+					stack.push(Expr::Var(name))
 				}
 			}
 		};
-		if stack.len() > 1 { return Err(err_msg("Too many... things").into()) }
+		if stack.len() > 1 { return Err(err_msg("Expected another operator").into()) }
 		Ok(stack.into_iter().next().unwrap())
 	}
 	
 	pub fn to_string(&self) -> String {
 		match *self {
 			Expr::Value(val) => val.to_string(),
-			Expr::Expr(ref oper) => { oper.to_string() }
+			Expr::Expr(ref oper) => oper.to_string(),
+			Expr::Var(ref name) => name.clone(),
 		}
 	}
 	
-	pub fn eval(&self) -> f64 {
+	pub fn eval(&self) -> Result<f64, EvalError> {
 		match *self {
-			Expr::Value(val) => val,
-			Expr::Expr(ref oper) => oper.eval()
+			Expr::Value(val) => Ok(val),
+			Expr::Expr(ref oper) => oper.eval(None),
+			Expr::Var(ref name) => {
+				Err(EvalError::UninitializedVar { error: UninitializedVar { name: name.clone() } }.into())
+			}
 		}
+	}
+	
+	pub fn eval_ctx(&self, ctx: &Context) -> Result<f64, EvalError> {
+		match *self {
+			Expr::Value(val) => Ok(val),
+			Expr::Expr(ref oper) => oper.eval(Some(ctx)),
+			Expr::Var(ref name) => {
+				if let Some(expr) = ctx.get(&name) {
+					Ok(expr.eval_ctx(ctx)?)
+				} else {
+					Err(EvalError::UninitializedVar { error: UninitializedVar { name: name.clone() } }.into())
+				}
+			}
+		}
+	}
+}
+
+impl From<f64> for Expr {
+	fn from(v: f64) -> Expr {
+		Expr::Value(v)
 	}
 }
 
@@ -189,11 +269,13 @@ impl fmt::Display for Expr {
 enum TokenType {
 	Op,
 	Lit,
+	Name,
 	None,
 }
 
 #[derive(Debug, Clone)]
 pub enum Token {
 	Op(Op),
-	Value(f64)
+	Value(f64),
+	Name(String)
 }

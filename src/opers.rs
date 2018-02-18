@@ -1,9 +1,9 @@
 use std::fmt::Debug;
 
-use expr::Expr;
+use expr::{Expr, EvalError, Context};
 
 pub trait Operation: Debug {
-	fn eval(&self) -> f64;
+	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError>;
 	fn to_string(&self) -> String {
 		String::from("({})")
 	}
@@ -16,8 +16,12 @@ pub struct Add {
 }
 
 impl Operation for Add {
-	fn eval(&self) -> f64 {
-		self.a.eval() + self.b.eval()
+	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
+		if let Some(ctx) = ctx {
+			Ok(self.a.eval_ctx(ctx)? + self.b.eval_ctx(ctx)?)
+		} else {
+			Ok(self.a.eval()? + self.b.eval()?)
+		}
 	}
 	
 	fn to_string(&self) -> String {
@@ -32,8 +36,12 @@ pub struct Sub {
 }
 
 impl Operation for Sub {
-	fn eval(&self) -> f64 {
-		self.a.eval() - self.b.eval()
+	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
+		if let Some(ctx) = ctx {
+			Ok(self.a.eval_ctx(ctx)? - self.b.eval_ctx(ctx)?)
+		} else {
+			Ok(self.a.eval()? - self.b.eval()?)
+		}
 	}
 	
 	fn to_string(&self) -> String {
@@ -48,8 +56,12 @@ pub struct Mul {
 }
 
 impl Operation for Mul {
-	fn eval(&self) -> f64 {
-		self.a.eval() * self.b.eval()
+	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
+		if let Some(ctx) = ctx {
+			Ok(self.a.eval_ctx(ctx)? * self.b.eval_ctx(ctx)?)
+		} else {
+			Ok(self.a.eval()? * self.b.eval()?)
+		}
 	}
 	
 	fn to_string(&self) -> String {
@@ -64,8 +76,12 @@ pub struct Div {
 }
 
 impl Operation for Div {
-	fn eval(&self) -> f64 {
-		self.a.eval() / self.b.eval()
+	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
+		if let Some(ctx) = ctx {
+			Ok(self.a.eval_ctx(ctx)? / self.b.eval_ctx(ctx)?)
+		} else {
+			Ok(self.a.eval()? / self.b.eval()?)
+		}
 	}
 	
 	fn to_string(&self) -> String {
@@ -80,8 +96,12 @@ pub struct Pow {
 }
 
 impl Operation for Pow {
-	fn eval(&self) -> f64 {
-		self.a.eval().powf(self.b.eval())
+	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
+		if let Some(ctx) = ctx {
+			Ok(self.a.eval_ctx(ctx)?.powf(self.b.eval_ctx(ctx)?))
+		} else {
+			Ok(self.a.eval()?.powf(self.b.eval()?))
+		}
 	}
 	
 	fn to_string(&self) -> String {
