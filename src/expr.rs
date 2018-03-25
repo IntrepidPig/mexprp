@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use op::Op;
 use opers::*;
+use parse::*;
 
 use failure::Error;
 use failure::err_msg;
@@ -15,7 +16,7 @@ pub enum Expr {
 
 #[derive(Debug, Fail)]
 #[fail(display = "Got unexpected token")]
-pub struct UnexpectedToken(String);
+pub struct UnexpectedToken(pub String);
 
 #[derive(Debug, Fail)]
 #[fail(display = "Parenthesis didn't match")]
@@ -59,85 +60,14 @@ impl Context {
 	}
 }
 
-fn parse_token(raw: &str, ttype: TokenType) -> Result<Option<Token>, Error> {
-	Ok(match ttype {
-		TokenType::Op => {
-			Some(match raw {
-				"+" => Token::Op(Op::Add),
-				"-" => Token::Op(Op::Sub),
-				"*" => Token::Op(Op::Mul),
-				"/" => Token::Op(Op::Div),
-				"^" => Token::Op(Op::Pow),
-				"(" => Token::Op(Op::Open),
-				")" => Token::Op(Op::Close),
-				_ => {
-					return Err(UnexpectedToken(raw.to_string()).into())
-				}
-			})
-		},
-		TokenType::Lit => {
-			Some(Token::Value(raw.parse()?))
-		},
-		TokenType::Name => {
-			Some(Token::Name(raw.to_string()))
-		},
-		TokenType::None => {
-			None
-		}
-	})
-}
-
-fn tokentype(raw: char) -> Result<TokenType, UnexpectedToken> {
-	match raw {
-		'+' | '-' | '*' | '/' | '^' | '(' | ')' => Ok(TokenType::Op),
-		_ => {
-			if raw.is_ascii_digit() || raw == '.' {
-				Ok(TokenType::Lit)
-			} else if raw.is_whitespace() {
-				Ok(TokenType::None)
-			} else if raw.is_alphabetic() {
-				Ok(TokenType::Name)
-			} else {
-				Err(UnexpectedToken(raw.to_string()))
-			}
-		}
-	}
-}
-
-fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
-	let mut prevttype = TokenType::None;
-	let mut tbuf = String::new();
-	let mut tokens = Vec::new();
-	
-	for c in raw.chars() {
-		let ttype = tokentype(c)?;
-		if ttype == prevttype {
-			tbuf.push(c);
-		} else {
-			if prevttype != TokenType::None {
-				tokens.push(parse_token(&tbuf, prevttype)?.unwrap());
-			}
-			tbuf.clear();
-			tbuf.push(c);
-			prevttype = ttype;
-		}
-	}
-	
-	if prevttype != TokenType::None {
-		tokens.push(parse_token(&tbuf, prevttype)?.unwrap());
-	}
-	
-	Ok(tokens)
-}
-
 fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
 	let mut ops: Vec<Op> = Vec::new();
 	let mut tokens: Vec<Token> = Vec::new();
 	let raw = to_tokens(raw.trim())?;
 	for token in raw {
 		match token {
-			Token::Value(val) => tokens.push(Token::Value(val)),
-			Token::Name(name) => tokens.push(Token::Name(name)),
+			Token::Num(val) => tokens.push(Token::Num(val)),
+			Token::Var(name) => tokens.push(Token::Var(name)),
 			Token::Op(op) => {
 				match op {
 					Op::Open => {
@@ -164,6 +94,9 @@ fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
 					},
 				}
 			},
+			Token::Func(name) => {
+				unimplemented!()
+			}
 		}
 	}
 	while !ops.is_empty() {
@@ -179,7 +112,7 @@ impl Expr {
 		let mut stack: Vec<Expr> = Vec::new();
 		for token in tokens {
 			match token {
-				Token::Value(val) => {
+				Token::Num(val) => {
 					stack.push(Expr::Value(val))
 				},
 				Token::Op(op) => {
@@ -201,8 +134,11 @@ impl Expr {
 					};
 					stack.push(Expr::Expr(oper));
 				},
-				Token::Name(name) => {
+				Token::Var(name) => {
 					stack.push(Expr::Var(name))
+				},
+				Token::Func(name) => {
+					unimplemented!()
 				}
 			}
 		};
@@ -254,19 +190,4 @@ impl fmt::Display for Expr {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		f.write_str(&self.to_string())
 	}
-}
-
-#[derive(PartialEq)]
-enum TokenType {
-	Op,
-	Lit,
-	Name,
-	None,
-}
-
-#[derive(Debug, Clone)]
-pub enum Token {
-	Op(Op),
-	Value(f64),
-	Name(String)
 }

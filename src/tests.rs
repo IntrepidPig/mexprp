@@ -2,7 +2,10 @@ use {Expr, Context};
 
 #[test]
 fn basic() {
-	let expr = Expr::from("(3 * (17.8 - 4) ^ 2) / 7").unwrap();
+	let raw = "(3 * (17.8 - 4) ^ 2) / 7";
+	println!("\nParsing {}", raw);
+	let expr = Expr::from(raw).unwrap();
+	println!("\nDone parsing {}", raw);
 	assert!((expr.eval().unwrap() - 81.61714285714285).abs() < 0.001);
 }
 

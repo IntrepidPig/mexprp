@@ -1,6 +1,7 @@
 extern crate failure;
 #[macro_use] extern crate failure_derive;
 
+pub mod parse;
 pub mod op;
 pub mod expr;
 pub mod opers;
