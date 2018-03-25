@@ -67,7 +67,7 @@ fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
 	for token in raw {
 		match token {
 			Token::Num(val) => tokens.push(Token::Num(val)),
-			Token::Var(name) => tokens.push(Token::Var(name)),
+			Token::Name(name) => tokens.push(Token::Name(name)),
 			Token::Op(op) => {
 				match op {
 					Op::Open => {
@@ -94,9 +94,6 @@ fn to_postfix(raw: &str) -> Result<Vec<Token>, Error> {
 					},
 				}
 			},
-			Token::Func(name) => {
-				unimplemented!()
-			}
 		}
 	}
 	while !ops.is_empty() {
@@ -134,11 +131,8 @@ impl Expr {
 					};
 					stack.push(Expr::Expr(oper));
 				},
-				Token::Var(name) => {
+				Token::Name(name) => {
 					stack.push(Expr::Var(name))
-				},
-				Token::Func(name) => {
-					unimplemented!()
 				}
 			}
 		};

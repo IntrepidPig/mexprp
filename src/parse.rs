@@ -7,30 +7,19 @@ use op::Op;
 pub(crate) enum TokenType {
 	Op,
 	Paren,
-	Literal,
+	Num,
 	Name,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) enum Token {
 	Op(Op),
-	Func(String),
-	Var(String),
+	Name(String),
 	Num(f64),
 }
 
-impl Token {
-	pub(crate) fn tokentype(&self) -> TokenType {
-		match *self {
-			Token::Op(_) => TokenType::Op,
-			Token::Num(_) => TokenType::Literal,
-			Token::Func(_) | Token::Var(_) => TokenType::Name,
-		}
-	}
-}
-
-pub(crate) fn parse_token(raw: &str, ttype: TokenType) -> Result<Token, Error> {
-	Ok(match ttype {
+pub(crate) fn parse_token(raw: &str, token_type: TokenType) -> Result<Token, Error> {
+	Ok(match token_type {
 		TokenType::Op => {
 			match raw {
 				"+" => Token::Op(Op::Add),
@@ -52,28 +41,28 @@ pub(crate) fn parse_token(raw: &str, ttype: TokenType) -> Result<Token, Error> {
 				}
 			}
 		}
-		TokenType::Literal => {
+		TokenType::Num => {
 			Token::Num(raw.parse()?)
 		},
 		TokenType::Name => {
-			Token::Var(raw.to_string())
+			Token::Name(raw.to_string())
 		},
 	})
 }
 
-fn tokentype(raw: char) -> Result<TokenType, UnexpectedToken> {
-	match raw {
-		'+' | '-' | '*' | '/' | '^' => Ok(TokenType::Op),
-		'(' | ')' => Ok(TokenType::Paren),
-		_ => {
-			if raw.is_ascii_digit() || raw == '.' {
-				Ok(TokenType::Literal)
-			} else if raw.is_alphabetic() {
-				Ok(TokenType::Name)
-			} else {
-				Err(UnexpectedToken(raw.to_string()))
-			}
-		}
+fn token_type(raw: char, expected: Expected) -> Result<TokenType, UnexpectedToken> {
+	let ops = ['+', '-', '*', '/', '^'];
+	let parens = ['(', ')'];
+	if ops.contains(&raw) && expected.op {
+		Ok(TokenType::Op)
+	} else if parens.contains(&raw) && expected.paren {
+		Ok(TokenType::Paren)
+	} else if raw.is_ascii_digit() || raw == '.' || (raw == '-' && !expected.op) && expected.literal {
+		Ok(TokenType::Num)
+	} else if raw.is_alphabetic() && expected.name {
+		Ok(TokenType::Name)
+	} else {
+		Err(UnexpectedToken(raw.to_string()))
 	}
 }
 
@@ -86,33 +75,6 @@ struct Expected {
 }
 
 impl Expected {
-	pub fn list(self) -> Vec<TokenType> {
-		let mut expected = Vec::new();
-		if self.op {
-			expected.push(TokenType::Op);
-		}
-		if self.paren {
-			expected.push(TokenType::Paren);
-		}
-		if self.literal {
-			expected.push(TokenType::Literal);
-		}
-		if self.name {
-			expected.push(TokenType::Name);
-		}
-		expected
-	}
-	
-	pub fn from_type(ttype: TokenType) -> Self {
-		let mut e = Self::none();
-		match ttype {
-			TokenType::Paren => { e.paren = true; e },
-			TokenType::Op => { e.op = true; e },
-			TokenType::Literal => { e.literal = true; e },
-			TokenType::Name => { e.name = true; e },
-		}
-	}
-	
 	pub fn none() -> Self {
 		Expected {
 			op: false,
@@ -130,6 +92,15 @@ impl Expected {
 			name: true,
 		}
 	}
+	
+	/*pub fn contains(&self, token_type: TokenType) -> bool {
+		match token_type {
+			TokenType::Op => self.op,
+			TokenType::Paren => self.paren,
+			TokenType::Literal => self.literal,
+			TokenType::Name => self.name,
+		}
+	}*/
 }
 
 fn next_token(raw: &str, expected: Option<Expected>) -> Result<Result<(Token, &str), &str>, Error> {
@@ -140,41 +111,35 @@ fn next_token(raw: &str, expected: Option<Expected>) -> Result<Result<(Token, &s
 		name: true,
 	});
 	let c = raw.chars().next().expect("Empty");
+	// Skip whitespace
 	if c.is_whitespace() {
 		return Ok(Err(&raw[c.len_utf8()..raw.len()]));
 	}
-	let ttype = tokentype(c)?;
-	for e in expected.list() {
-		if ttype == e {
-			let mut end: usize = 0;
-			for c in raw.chars() {
-				let diff = match tokentype(c) {
-					Ok(testtype) => {
-						if ttype == TokenType::Paren {
-							end += c.len_utf8();
-							true
-						} else {
-							testtype != ttype
-						}
-					},
-					Err(e) => true,
-				};
-				if diff {
-					return Ok(Ok((parse_token(&raw[0..end], ttype)?, &raw[end..raw.len()])));
+	
+	let char_token_type = token_type(c, expected)?;
+	let mut token_end: usize = 0;
+	for next_c in raw.chars() {
+		let diff = match token_type(next_c, expected) {
+			Ok(next_token_type) => {
+				if char_token_type == TokenType::Paren {
+					token_end += next_c.len_utf8();
+					true
+				} else {
+					next_token_type != char_token_type
 				}
-				end += c.len_utf8();
-			}
+			},
+			Err(_) => true,
+		};
+		if diff {
+			return Ok(Ok((parse_token(&raw[0..token_end], char_token_type)?, &raw[token_end..raw.len()])));
 		}
+		token_end += next_c.len_utf8();
 	}
 	
 	Err(UnexpectedToken(raw.to_string()).into())
 }
 
 pub(crate) fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
-	// The type of the token that is being built
-	let mut ttype: Option<TokenType> = None;
-	// The start of the token that is being built
-	let mut tokenstart: usize = 0;
 	// The data left to be parsed
 	let mut raw: &str = raw;
 	// The final token list
@@ -186,33 +151,38 @@ pub(crate) fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
 		match next_token(raw, expected)? {
 			Ok((token, new_raw)) => {
 				raw = new_raw;
-				let mut new_expected = Expected::none();
-				match token {
-					Token::Op(_) => {
-						new_expected.name = true;
-						new_expected.literal = true;
-						new_expected.paren = true;
-					},
-					Token::Func(_) => {
-						new_expected = Expected::all();
-					},
-					Token::Num(_) => {
-						new_expected.paren = true;
-						new_expected.name = true;
-						new_expected.op = true;
-					},
-					Token::Var(_) => {
-						new_expected.paren = true;
-						new_expected.op = true;
-					}
-				}
-				expected = Some(new_expected);
 				tokens.push(token);
 			},
 			Err(new_raw) => {
 				raw = new_raw;
 			}
 		}
+		
+		let mut new_expected = Expected::none();
+		match tokens.last() {
+			Some(&Token::Op(Op::Open)) | Some(&Token::Op(Op::Close)) => {
+				new_expected = Expected::all();
+			},
+			Some(&Token::Op(_)) => {
+				new_expected.name = true;
+				new_expected.literal = true;
+				new_expected.paren = true;
+			},
+			Some(&Token::Num(_)) => {
+				new_expected.paren = true;
+				new_expected.name = true;
+				new_expected.op = true;
+			},
+			Some(&Token::Name(_)) => {
+				new_expected = Expected::all();
+			},
+			None => {
+				new_expected = Expected::all();
+			}
+		}
+		
+		expected = Some(new_expected);
+		
 	}
 	
 	Ok(tokens)
