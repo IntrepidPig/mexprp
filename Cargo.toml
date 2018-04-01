@@ -3,10 +3,9 @@ name = "mexprp"
 version = "0.0.1"
 authors = ["Benny A <virusdownloader7@gmail.com>"]
 
-[[bin]]
-name = "bin"
-path = "src/bin.rs"
-
 [dependencies]
 failure = "0.1"
-failure_derive = "0.1"
+log = "0.4"
+
+[dev-dependencies]
+simplelog = "0.5.1"

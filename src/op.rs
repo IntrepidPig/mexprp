@@ -5,18 +5,15 @@ pub enum Op {
 	Div,
 	Add,
 	Sub,
-	Open,
-	Close
 }
 
 impl Op {
 	pub fn precedence(&self) -> i32 {
-		use Op::*;
+		use self::Op::*;
 		match *self {
 			Pow => 4,
 			Mul | Div => 3,
-			Add | Sub=> 2,
-			Open | Close => 1
+			Add | Sub => 2,
 		}
 	}
 	
@@ -29,28 +26,29 @@ impl Op {
 	}
 	
 	pub fn is_left_associative(&self) -> bool {
-		use Op::*;
+		use self::Op::*;
 		match *self {
 			Pow => false,
-			_ => true
+			Mul => true,
+			Div => true,
+			Add => true,
+			Sub => true,
 		}
 	}
 	
+	pub fn is_right_associative(&self) -> bool {
+		!self.is_left_associative()
+	}
+	
 	pub fn to_string(&self) -> String {
-		use Op::*;
+		use self::Op::*;
 		String::from(match *self {
 			Pow => "^",
 			Mul => "*",
 			Div => "/",
 			Add => "+",
 			Sub => "-",
-			Open => "(",
-			Close => ")"
 		})
-	}
-	
-	pub fn is_paren(&self) -> bool {
-		*self == Op::Open || *self == Op::Close
 	}
 }
 
@@ -58,5 +56,26 @@ use std::fmt;
 impl fmt::Display for Op {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		f.write_str(&self.to_string())
+	}
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Paren {
+	Open,
+	Close
+}
+
+impl Paren {
+	pub fn to_str(&self) -> &str {
+		match *self {
+			Paren::Open => "(",
+			Paren::Close => ")",
+		}
+	}
+}
+
+impl fmt::Display for Paren {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		f.write_str(self.to_str())
 	}
 }

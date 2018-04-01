@@ -1,7 +1,7 @@
 use failure::Error;
 
-use expr::UnexpectedToken;
-use op::Op;
+use op::*;
+use errors::*;
 
 #[derive(PartialEq, Copy, Clone, Debug)]
 pub(crate) enum TokenType {
@@ -9,13 +9,25 @@ pub(crate) enum TokenType {
 	Paren,
 	Num,
 	Name,
+	Comma,
 }
 
 #[derive(Debug, Clone)]
 pub(crate) enum Token {
+	Paren(Paren),
 	Op(Op),
 	Name(String),
 	Num(f64),
+	Comma,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) enum ParenToken {
+	Op(Op),
+	Num(f64),
+	Name(String),
+	Sub(Vec<ParenToken>),
+	Comma,
 }
 
 pub(crate) fn parse_token(raw: &str, token_type: TokenType) -> Result<Token, Error> {
@@ -34,19 +46,29 @@ pub(crate) fn parse_token(raw: &str, token_type: TokenType) -> Result<Token, Err
 		},
 		TokenType::Paren => {
 			match raw {
-				"(" => Token::Op(Op::Open),
-				")" => Token::Op(Op::Close),
+				"(" => Token::Paren(Paren::Open),
+				")" => Token::Paren(Paren::Close),
 				_ => {
 					return Err(UnexpectedToken(raw.to_string()).into())
 				}
 			}
 		}
 		TokenType::Num => {
-			Token::Num(raw.parse()?)
+			if raw == "-" {
+				Token::Num(-1.0)
+			} else {
+				Token::Num(raw.parse()?)
+			}
 		},
 		TokenType::Name => {
 			Token::Name(raw.to_string())
 		},
+		TokenType::Comma => {
+			match raw {
+				"," => Token::Comma,
+				_ => return Err(UnexpectedToken(raw.to_string()).into())
+			}
+		}
 	})
 }
 
@@ -55,6 +77,8 @@ fn token_type(raw: char, expected: Expected) -> Result<TokenType, UnexpectedToke
 	let parens = ['(', ')'];
 	if ops.contains(&raw) && expected.op {
 		Ok(TokenType::Op)
+	} else if raw == ',' && expected.comma {
+		Ok(TokenType::Comma)
 	} else if parens.contains(&raw) && expected.paren {
 		Ok(TokenType::Paren)
 	} else if raw.is_ascii_digit() || raw == '.' || (raw == '-' && !expected.op) && expected.literal {
@@ -72,6 +96,7 @@ struct Expected {
 	paren: bool,
 	literal: bool,
 	name: bool,
+	comma: bool,
 }
 
 impl Expected {
@@ -81,6 +106,7 @@ impl Expected {
 			paren: false,
 			literal: false,
 			name: false,
+			comma: false,
 		}
 	}
 	
@@ -90,28 +116,16 @@ impl Expected {
 			paren: true,
 			literal: true,
 			name: true,
+			comma: true,
 		}
 	}
-	
-	/*pub fn contains(&self, token_type: TokenType) -> bool {
-		match token_type {
-			TokenType::Op => self.op,
-			TokenType::Paren => self.paren,
-			TokenType::Literal => self.literal,
-			TokenType::Name => self.name,
-		}
-	}*/
 }
 
-fn next_token(raw: &str, expected: Option<Expected>) -> Result<Result<(Token, &str), &str>, Error> {
-	let expected = expected.unwrap_or(Expected {
-		op: true,
-		paren: true,
-		literal: true,
-		name: true,
-	});
+/// Get the next token of a string based on what's expected. Returns either a                //  ↓ never delete this
+fn next_token(raw: &str, expected: Expected) -> Result<Result<(Token, &str), &str>, Error> { // TODO clean
 	let c = raw.chars().next().expect("Empty");
-	// Skip whitespace
+	
+	// Skip whitespace and return the substring after this whitespace character
 	if c.is_whitespace() {
 		return Ok(Err(&raw[c.len_utf8()..raw.len()]));
 	}
@@ -121,7 +135,7 @@ fn next_token(raw: &str, expected: Option<Expected>) -> Result<Result<(Token, &s
 	for next_c in raw.chars() {
 		let diff = match token_type(next_c, expected) {
 			Ok(next_token_type) => {
-				if char_token_type == TokenType::Paren {
+				if char_token_type == TokenType::Paren || char_token_type == TokenType::Op || char_token_type == TokenType::Comma { // Only allows one character operators
 					token_end += next_c.len_utf8();
 					true
 				} else {
@@ -136,7 +150,7 @@ fn next_token(raw: &str, expected: Option<Expected>) -> Result<Result<(Token, &s
 		token_end += next_c.len_utf8();
 	}
 	
-	Err(UnexpectedToken(raw.to_string()).into())
+	Ok(Ok((parse_token(&raw[0..token_end], char_token_type)?, &raw[token_end..raw.len()])))
 }
 
 pub(crate) fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
@@ -145,7 +159,13 @@ pub(crate) fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
 	// The final token list
 	let mut tokens: Vec<Token> = Vec::new();
 	// The next expected token
-	let mut expected = None;
+	let mut expected = Expected {
+		name: true,
+		literal: true,
+		paren: true,
+		op: false, // First token can't be an operator
+		comma: false, // First token can't be a comma
+	};
 	
 	while raw.len() > 0 {
 		match next_token(raw, expected)? {
@@ -160,30 +180,136 @@ pub(crate) fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
 		
 		let mut new_expected = Expected::none();
 		match tokens.last() {
-			Some(&Token::Op(Op::Open)) | Some(&Token::Op(Op::Close)) => {
+			Some(&Token::Paren(Paren::Open)) => { // Any token can come after a open parentheses (except a comma)
+				new_expected.paren = true;
+				new_expected.name = true;
+				new_expected.op = true;
+				new_expected.literal = true;
+			},
+			Some(&Token::Paren(Paren::Close)) => { // Any token can come after a close parentheses
 				new_expected = Expected::all();
 			},
-			Some(&Token::Op(_)) => {
+			Some(&Token::Op(_)) => { // An operator can't come after another operator (no unary ops)
 				new_expected.name = true;
 				new_expected.literal = true;
 				new_expected.paren = true;
 			},
-			Some(&Token::Num(_)) => {
+			Some(&Token::Num(_)) => { // A number can't come after another number
 				new_expected.paren = true;
 				new_expected.name = true;
 				new_expected.op = true;
+				new_expected.comma = true;
 			},
-			Some(&Token::Name(_)) => {
+			Some(&Token::Name(_)) => { // Anything can come after a name
 				new_expected = Expected::all();
 			},
-			None => {
-				new_expected = Expected::all();
+			Some(&Token::Comma) => { // Only operands can come after a comma
+				new_expected.paren = true;
+				new_expected.name = true;
+				new_expected.literal = true;
+			},
+			None => { // An operator or comma can't be the first token
+				new_expected.name = true;
+				new_expected.literal = true;
+				new_expected.paren = true;
 			}
 		}
 		
-		expected = Some(new_expected);
-		
+		expected = new_expected;
 	}
 	
 	Ok(tokens)
+}
+
+pub(crate) fn to_paren_tokens(raw: Vec<Token>) -> Result<Vec<ParenToken>, Error> {
+	trace!("Converting raw tokens to paren tokens");
+	fn recurse(raw: &[Token]) -> Result<Vec<ParenToken>, Error> {
+		let mut parentokens = Vec::new();
+		
+		let mut start = 0;
+		let mut paren_count = 0;
+		let mut counting = false;
+		
+		for (i, token) in raw.iter().enumerate() {
+			match *token {
+				Token::Num(num) => {
+					if !counting {
+						parentokens.push(ParenToken::Num(num)); // Only push the number if it's not part of a subexpression
+					}
+				},
+				Token::Op(ref op) => {
+					if !counting {
+						parentokens.push(ParenToken::Op(op.clone())); // Only push the op if it's not part of a subexpression
+					}
+				},
+				Token::Paren(Paren::Open) => {
+					if !counting {
+						start = i; // If we aren't already in a subexpression, start counting here
+					}
+					counting = true; // Say we are counting
+					paren_count += 1; // Up the open parentheses count
+				},
+				Token::Paren(Paren::Close) => {
+					paren_count -= 1; // Lower the open parentheses count
+					
+					if paren_count < 0 { // Ensure we haven't gone below the amount of parentheses
+						return Err(MismatchedParenthesis.into());
+					}
+					
+					if paren_count == 0 { // If we have reached the matching end parentheses
+						counting = false; // Say we are not in a subexpression anymore
+						parentokens.push(ParenToken::Sub(recurse(&raw[start + 1..i])?)); // Just push the subexpression
+					}
+				},
+				Token::Name(ref name) => {
+					if !counting {
+						parentokens.push(ParenToken::Name(name.clone())); // Only push the var if it's not part of the subexpression
+					}
+				},
+				Token::Comma => {
+					if !counting {
+						parentokens.push(ParenToken::Comma); // Only push the comma if it's not part of the subexpression
+					}
+				},
+			}
+		}
+		
+		Ok(parentokens)
+	}
+	
+	recurse(&raw)
+}
+
+pub(crate) fn get_tokens(raw: &str) -> Result<Vec<ParenToken>, Error> {
+	let raw_tokens = to_tokens(raw)?;
+	debug!("Raw tokens: {:?}", raw_tokens);
+	let paren_tokens = to_paren_tokens(raw_tokens)?;
+	debug!("Paren tokens: {:?}", paren_tokens);
+	
+	Ok(paren_tokens)
+}
+
+/// Finds the index of the matching close parentheses of an open parentheses present a `start` of a
+/// string. Start should be the index of the starting open parentheses and the function will return
+/// the index of the end parentheses.
+fn match_paren_str(string: &str, start: usize) -> Result<usize, MismatchedParenthesis> {
+	let string = &string[start..string.len()];
+	let mut count = 0;
+	let mut index = start;
+	
+	for c in string.chars() {
+		match c {
+			'(' => count += 1,
+			')' => count -= 1,
+			_ => {},
+		}
+		
+		index += c.len_utf8();
+		
+		if count == 0 {
+			return Ok(index);
+		}
+	}
+	
+	Err(MismatchedParenthesis)
 }

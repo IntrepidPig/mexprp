@@ -1,9 +1,11 @@
 use std::fmt::Debug;
 
-use expr::{Expr, EvalError, Context};
+use expr::{Term};
+use context::Context;
+use errors::MathError;
 
-pub trait Operation: Debug {
-	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError>;
+pub trait Operate: Debug {
+	fn eval(&self, ctx: &Context) -> Result<f64, MathError>;
 	fn to_string(&self) -> String {
 		String::from("({})")
 	}
@@ -11,17 +13,13 @@ pub trait Operation: Debug {
 
 #[derive(Debug)]
 pub struct Add {
-	pub a: Expr,
-	pub b: Expr
+	pub a: Term,
+	pub b: Term
 }
 
-impl Operation for Add {
-	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
-		if let Some(ctx) = ctx {
-			Ok(self.a.eval_ctx(ctx)? + self.b.eval_ctx(ctx)?)
-		} else {
-			Ok(self.a.eval()? + self.b.eval()?)
-		}
+impl Operate for Add {
+	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
+		Ok(self.a.eval(ctx)? + self.b.eval(ctx)?)
 	}
 	
 	fn to_string(&self) -> String {
@@ -31,17 +29,13 @@ impl Operation for Add {
 
 #[derive(Debug)]
 pub struct Sub {
-	pub a: Expr,
-	pub b: Expr
+	pub a: Term,
+	pub b: Term
 }
 
-impl Operation for Sub {
-	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
-		if let Some(ctx) = ctx {
-			Ok(self.a.eval_ctx(ctx)? - self.b.eval_ctx(ctx)?)
-		} else {
-			Ok(self.a.eval()? - self.b.eval()?)
-		}
+impl Operate for Sub {
+	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
+		Ok(self.a.eval(ctx)? - self.b.eval(ctx)?)
 	}
 	
 	fn to_string(&self) -> String {
@@ -51,17 +45,13 @@ impl Operation for Sub {
 
 #[derive(Debug)]
 pub struct Mul {
-	pub a: Expr,
-	pub b: Expr
+	pub a: Term,
+	pub b: Term
 }
 
-impl Operation for Mul {
-	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
-		if let Some(ctx) = ctx {
-			Ok(self.a.eval_ctx(ctx)? * self.b.eval_ctx(ctx)?)
-		} else {
-			Ok(self.a.eval()? * self.b.eval()?)
-		}
+impl Operate for Mul {
+	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
+		Ok(self.a.eval(ctx)? * self.b.eval(ctx)?)
 	}
 	
 	fn to_string(&self) -> String {
@@ -71,17 +61,17 @@ impl Operation for Mul {
 
 #[derive(Debug)]
 pub struct Div {
-	pub a: Expr,
-	pub b: Expr
+	pub a: Term,
+	pub b: Term
 }
 
-impl Operation for Div {
-	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
-		if let Some(ctx) = ctx {
-			Ok(self.a.eval_ctx(ctx)? / self.b.eval_ctx(ctx)?)
-		} else {
-			Ok(self.a.eval()? / self.b.eval()?)
+impl Operate for Div {
+	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
+		let b = self.b.eval(ctx)?;
+		if b == 0.0 {
+			return Err(MathError::DivideByZero);
 		}
+		Ok(self.a.eval(ctx)? / b)
 	}
 	
 	fn to_string(&self) -> String {
@@ -91,20 +81,32 @@ impl Operation for Div {
 
 #[derive(Debug)]
 pub struct Pow {
-	pub a: Expr,
-	pub b: Expr
+	pub a: Term,
+	pub b: Term
 }
 
-impl Operation for Pow {
-	fn eval(&self, ctx: Option<&Context>) -> Result<f64, EvalError> {
-		if let Some(ctx) = ctx {
-			Ok(self.a.eval_ctx(ctx)?.powf(self.b.eval_ctx(ctx)?))
-		} else {
-			Ok(self.a.eval()?.powf(self.b.eval()?))
-		}
+impl Operate for Pow {
+	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
+		Ok(self.a.eval(ctx)?.powf(self.b.eval(ctx)?))
 	}
 	
 	fn to_string(&self) -> String {
 		format!("({} ^ {})", self.a, self.b)
+	}
+}
+
+pub struct Operation {
+	inner: Box<Operate>,
+}
+
+impl Operation {
+
+}
+
+impl<T> From<T> for Operation where T: Operate + 'static {
+	fn from(t: T) -> Self {
+		Self {
+			inner: Box::new(t)
+		}
 	}
 }
