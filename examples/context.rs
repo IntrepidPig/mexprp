@@ -3,7 +3,7 @@
 
 extern crate mexprp;
 
-use mexprp::{Expression, Context, Calculation, Term};
+use mexprp::{Calculation, Context, Expression, Term};
 use mexprp::errors::MathError;
 
 fn main() {
@@ -17,17 +17,21 @@ fn main() {
 	// evaluated with. The item passed in can be anything that implements the `Func` trait. There exists
 	// a blanket impl for Fn(&[Term], &Context) -> Calculation which allows you to pass in closures in
 	// that format.
-	context.add_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
-		if args.len() < 1 { return Err(MathError::IncorrectArguments) };
-		
-		let mut sum = 0.0;
-		for arg in args {
-			sum += arg.eval(ctx)?;
-		}
-		
-		Ok(sum)
-	}).unwrap();
-	
+	context
+		.add_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
+			if args.len() < 1 {
+				return Err(MathError::IncorrectArguments);
+			};
+
+			let mut sum = 0.0;
+			for arg in args {
+				sum += arg.eval(ctx)?;
+			}
+
+			Ok(sum)
+		})
+		.unwrap();
+
 	let raw = "2 * sum(x, 7, 400)";
 	// The expression needs to be parsed with the context in order do decide if some names are functions
 	// or variables.

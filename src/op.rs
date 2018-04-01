@@ -1,5 +1,5 @@
 #[derive(Debug, Clone, PartialEq)]
-pub enum Op {
+pub(crate) enum Op {
 	Pow,
 	Mul,
 	Div,
@@ -60,7 +60,7 @@ impl fmt::Display for Op {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Paren {
+pub(crate) enum Paren {
 	Open,
 	Close,
 }

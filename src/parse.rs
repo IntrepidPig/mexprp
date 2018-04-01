@@ -30,7 +30,7 @@ pub(crate) enum ParenToken {
 	Comma,
 }
 
-pub(crate) fn parse_token(raw: &str, token_type: TokenType) -> Result<Token, Error> {
+fn parse_token(raw: &str, token_type: TokenType) -> Result<Token, Error> {
 	Ok(match token_type {
 		TokenType::Op => match raw {
 			"+" => Token::Op(Op::Add),
@@ -149,7 +149,7 @@ fn next_token(raw: &str, expected: Expected) -> Result<Result<(Token, &str), &st
 	)))
 }
 
-pub(crate) fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
+fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
 	// The data left to be parsed
 	let mut raw: &str = raw;
 	// The final token list
@@ -224,7 +224,7 @@ pub(crate) fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
 	Ok(tokens)
 }
 
-pub(crate) fn to_paren_tokens(raw: Vec<Token>) -> Result<Vec<ParenToken>, Error> {
+fn to_paren_tokens(raw: Vec<Token>) -> Result<Vec<ParenToken>, Error> {
 	trace!("Converting raw tokens to paren tokens");
 	fn recurse(raw: &[Token]) -> Result<Vec<ParenToken>, Error> {
 		let mut parentokens = Vec::new();

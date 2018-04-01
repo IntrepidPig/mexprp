@@ -4,12 +4,23 @@ use expr::Term;
 use func::Func;
 use errors::NameInUse;
 
+/// A context holds values for variables and functions to be used in expressions. It is useful for both
+/// parsing and evaluation expressions. During parsing, all names will be treated as variables unless
+/// present in the Context the expression is being parsed with as functions at the time.
+///
+/// Internally, a context is just two HashMaps, one for variables and one for functions. The only thing
+/// truly special about it (for now at least) is the defualt value when calling new(). This Context contains
+/// all basic functions and values expected to be included such as sin(), cos(), sqrt(), pi, etc. This
+/// is the Context all expressions are parsed and evaluated with if no other one is present.
 pub struct Context {
+	/// HashMap of variables
 	pub vars: HashMap<String, Term>,
+	/// HashMap of functions
 	pub funcs: HashMap<String, Box<Func>>,
 }
 
 impl Context {
+	/// Returns a default Context
 	pub fn new() -> Self {
 		use self::funcs::*;
 

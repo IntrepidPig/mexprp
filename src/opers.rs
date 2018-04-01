@@ -4,15 +4,18 @@ use expr::Term;
 use context::Context;
 use errors::MathError;
 
+/// A trait for operations
 pub trait Operate: Debug {
+	/// Evalute the operation or return an error
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError>;
+	/// Convert the operation to a string representation
 	fn to_string(&self) -> String {
 		String::from("({})")
 	}
 }
 
 #[derive(Debug)]
-pub struct Add {
+pub(crate) struct Add {
 	pub a: Term,
 	pub b: Term,
 }
@@ -28,7 +31,7 @@ impl Operate for Add {
 }
 
 #[derive(Debug)]
-pub struct Sub {
+pub(crate) struct Sub {
 	pub a: Term,
 	pub b: Term,
 }
@@ -44,7 +47,7 @@ impl Operate for Sub {
 }
 
 #[derive(Debug)]
-pub struct Mul {
+pub(crate) struct Mul {
 	pub a: Term,
 	pub b: Term,
 }
@@ -60,7 +63,7 @@ impl Operate for Mul {
 }
 
 #[derive(Debug)]
-pub struct Div {
+pub(crate) struct Div {
 	pub a: Term,
 	pub b: Term,
 }
@@ -80,7 +83,7 @@ impl Operate for Div {
 }
 
 #[derive(Debug)]
-pub struct Pow {
+pub(crate) struct Pow {
 	pub a: Term,
 	pub b: Term,
 }
