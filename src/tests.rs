@@ -1,12 +1,14 @@
 extern crate simplelog;
 
-use {Expression, Context, Term, Calculation};
+use {Calculation, Context, Expression, Term};
 use eval;
 
 fn init_logs() {
 	use self::simplelog::*;
-	
-	CombinedLogger::init(vec![TermLogger::new(LevelFilter::Trace, Config::default()).unwrap()]).unwrap();
+
+	CombinedLogger::init(vec![
+		TermLogger::new(LevelFilter::Trace, Config::default()).unwrap(),
+	]).unwrap();
 }
 
 #[test]
@@ -34,7 +36,10 @@ fn expr_context() {
 	init_logs();
 	let expr = Expression::parse("3 * something").unwrap();
 	let mut ctx = Context::new();
-	ctx.add_var("something", Expression::parse("(0-8) ^ 2").unwrap().into_term()).unwrap(); // TODO impl From<Expression> for Term
+	ctx.add_var(
+		"something",
+		Expression::parse("(0-8) ^ 2").unwrap().into_term(),
+	).unwrap(); // TODO impl From<Expression> for Term
 	assert_eq!(expr.eval_ctx(&ctx).unwrap(), 192.0);
 }
 
@@ -60,13 +65,15 @@ fn funcs() {
 	assert!(eq(eval("max(sin(2), 5000000, -4)").unwrap(), 5000000.0));
 	assert!(eq(eval("min(2 / -3 * 3 * 3, 5000000, -4)").unwrap(), -6.0));
 	let mut context = Context::new();
-	context.add_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
-		let mut x = 0.0;
-		for arg in args {
-			x += arg.eval(ctx)?;
-		}
-		Ok(x)
-	}).unwrap();
+	context
+		.add_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
+			let mut x = 0.0;
+			for arg in args {
+				x += arg.eval(ctx)?;
+			}
+			Ok(x)
+		})
+		.unwrap();
 	let expr = Expression::parse_ctx("sum(4, 5, 6) / 3", &context).unwrap();
 	assert!(eq(expr.eval_ctx(&context).unwrap(), 5.0));
 }

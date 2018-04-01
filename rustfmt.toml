@@ -1,0 +1,4 @@
+max_width = 300
+write_mode = "overwrite"
+tab_spaces = 4
+hard_tabs = true

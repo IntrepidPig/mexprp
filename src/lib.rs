@@ -16,8 +16,8 @@ pub mod context;
 mod tests;
 
 pub use func::Func;
-pub use expr::{Expression, Term, Calculation};
-pub use context::{Context};
+pub use expr::{Calculation, Expression, Term};
+pub use context::Context;
 
 pub fn eval(expr: &str) -> Result<f64, Error> {
 	Ok(Expression::parse(expr)?.eval()?)

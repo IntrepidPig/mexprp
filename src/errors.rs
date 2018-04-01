@@ -21,9 +21,7 @@ pub struct NameInUse {
 #[derive(Debug, Fail)]
 pub enum EvalError {
 	#[fail(display = "{}", error)]
-	UninitializedVar {
-		error: UninitializedVar
-	},
+	UninitializedVar { error: UninitializedVar },
 }
 
 #[derive(Debug, Fail)]
@@ -31,13 +29,9 @@ pub enum MathError {
 	#[fail(display = "Unknown error occurred in evaluation")]
 	Unknown,
 	#[fail(display = "Variable '{}' is not defined", name)]
-	UndefinedVariable {
-		name: String,
-	},
+	UndefinedVariable { name: String },
 	#[fail(display = "Function '{}' is not defined", name)]
-	UndefinedFunction {
-		name: String,
-	},
+	UndefinedFunction { name: String },
 	#[fail(display = "A function was passed incorrect arguments")]
 	IncorrectArguments,
 	#[fail(display = "Attempted to divide by zero")]

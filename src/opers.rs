@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use expr::{Term};
+use expr::Term;
 use context::Context;
 use errors::MathError;
 
@@ -14,14 +14,14 @@ pub trait Operate: Debug {
 #[derive(Debug)]
 pub struct Add {
 	pub a: Term,
-	pub b: Term
+	pub b: Term,
 }
 
 impl Operate for Add {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
 		Ok(self.a.eval(ctx)? + self.b.eval(ctx)?)
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("({} + {})", self.a, self.b)
 	}
@@ -30,14 +30,14 @@ impl Operate for Add {
 #[derive(Debug)]
 pub struct Sub {
 	pub a: Term,
-	pub b: Term
+	pub b: Term,
 }
 
 impl Operate for Sub {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
 		Ok(self.a.eval(ctx)? - self.b.eval(ctx)?)
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("({} - {})", self.a, self.b)
 	}
@@ -46,14 +46,14 @@ impl Operate for Sub {
 #[derive(Debug)]
 pub struct Mul {
 	pub a: Term,
-	pub b: Term
+	pub b: Term,
 }
 
 impl Operate for Mul {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
 		Ok(self.a.eval(ctx)? * self.b.eval(ctx)?)
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("({} * {})", self.a, self.b)
 	}
@@ -62,7 +62,7 @@ impl Operate for Mul {
 #[derive(Debug)]
 pub struct Div {
 	pub a: Term,
-	pub b: Term
+	pub b: Term,
 }
 
 impl Operate for Div {
@@ -73,7 +73,7 @@ impl Operate for Div {
 		}
 		Ok(self.a.eval(ctx)? / b)
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("({} / {})", self.a, self.b)
 	}
@@ -82,14 +82,14 @@ impl Operate for Div {
 #[derive(Debug)]
 pub struct Pow {
 	pub a: Term,
-	pub b: Term
+	pub b: Term,
 }
 
 impl Operate for Pow {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
 		Ok(self.a.eval(ctx)?.powf(self.b.eval(ctx)?))
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("({} ^ {})", self.a, self.b)
 	}
@@ -99,14 +99,13 @@ pub struct Operation {
 	inner: Box<Operate>,
 }
 
-impl Operation {
+impl Operation {}
 
-}
-
-impl<T> From<T> for Operation where T: Operate + 'static {
+impl<T> From<T> for Operation
+where
+	T: Operate + 'static,
+{
 	fn from(t: T) -> Self {
-		Self {
-			inner: Box::new(t)
-		}
+		Self { inner: Box::new(t) }
 	}
 }

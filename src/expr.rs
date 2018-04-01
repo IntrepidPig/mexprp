@@ -34,20 +34,16 @@ impl Term {
 				if let Some(func) = ctx.funcs.get(name) {
 					func.eval(args, ctx)
 				} else {
-					Err(MathError::UndefinedFunction {
-						name: name.clone(),
-					})
+					Err(MathError::UndefinedFunction { name: name.clone() })
 				}
-			},
+			}
 			Term::Var(ref name) => {
 				if let Some(var) = ctx.vars.get(name) {
 					var.eval(ctx)
 				} else {
-					Err(MathError::UndefinedVariable {
-						name: name.clone(),
-					})
+					Err(MathError::UndefinedVariable { name: name.clone() })
 				}
-			},
+			}
 		}
 	}
 }
@@ -75,7 +71,7 @@ impl Expression {
 		let ctx = Context::new();
 		Self::parse_ctx(raw, &ctx)
 	}
-	
+
 	pub fn parse_ctx(raw: &str, ctx: &Context) -> Result<Self, Error> {
 		let raw = raw.trim();
 		debug!("Parsing '{}'", raw);
@@ -89,43 +85,45 @@ impl Expression {
 		debug!("Postfix: {:?}", postfix);
 		let term = Self::postfix_to_term(postfix)?;
 		debug!("Term: {:?}", term);
-		
+
 		Ok(Self {
 			string: raw.to_string(),
 			term,
 		})
 	}
-	
+
 	pub fn eval(&self) -> Calculation {
 		let ctx = Context::new();
 		self.eval_ctx(&ctx)
 	}
-	
+
 	pub fn eval_ctx(&self, ctx: &Context) -> Calculation {
 		self.term.eval(ctx)
 	}
-	
+
 	fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, Error> {
 		trace!("Converting paren tokens to exprs");
 		let mut mtokens = Vec::new();
 		// Names that have yet to be decided
 		let mut pending_name = None;
-		
+
 		for rt in raw {
 			trace!("Have paren token: {:?}", rt);
 			match rt {
-				ParenToken::Num(num) => { // Names followed by numbers aren't functions
+				ParenToken::Num(num) => {
+					// Names followed by numbers aren't functions
 					if let Some(pending_name) = pending_name.take() {
 						mtokens.push(Expr::Var(pending_name));
 					}
 					mtokens.push(Expr::Num(num));
-				},
-				ParenToken::Op(op) => { // Names followed by operators aren't functions
+				}
+				ParenToken::Op(op) => {
+					// Names followed by operators aren't functions
 					if let Some(pending_name) = pending_name.take() {
 						mtokens.push(Expr::Var(pending_name));
 					}
 					mtokens.push(Expr::Op(op));
-				},
+				}
 				ParenToken::Sub(sub) => {
 					if let Some(name) = pending_name.take() {
 						if ctx.funcs.contains_key(&name) {
@@ -137,34 +135,34 @@ impl Expression {
 					} else {
 						mtokens.push(Expr::Sub(Self::paren_to_exprs(sub, ctx)?));
 					}
-				},
-				ParenToken::Name(name) => { // Names followed by names aren't functions
+				}
+				ParenToken::Name(name) => {
+					// Names followed by names aren't functions
 					if let Some(pending_name) = pending_name.take() {
 						mtokens.push(Expr::Var(pending_name));
 					}
 					pending_name = Some(name);
-				},
+				}
 				ParenToken::Comma => return Err(UnexpectedToken(String::from(",")).into()),
 			}
 		}
-		
-		if let Some(pending_name) = pending_name.take() { // Push a leftover pending name
+
+		if let Some(pending_name) = pending_name.take() {
+			// Push a leftover pending name
 			mtokens.push(Expr::Var(pending_name));
 		}
-		
+
 		Ok(mtokens)
 	}
-	
+
 	fn tokens_to_args(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Vec<Expr>>, Error> {
-		let args: Vec<&[ParenToken]> = raw.split(|ptoken| {
-			match ptoken {
-				&ParenToken::Comma => true,
-				_ => false
-			}
+		let args: Vec<&[ParenToken]> = raw.split(|ptoken| match ptoken {
+			&ParenToken::Comma => true,
+			_ => false,
 		}).collect();
-		
+
 		debug!("Split args into: '{:?}'", args);
-		
+
 		let mut new = Vec::new();
 		for arg in args {
 			let arg = arg.to_vec();
@@ -172,30 +170,35 @@ impl Expression {
 		}
 		Ok(new)
 	}
-	
+
 	/// Insert multiplication operations in between operands that are right next to each other
 	fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 		let mut i = 0;
 		while i < raw.len() - 1 {
-			if raw[i].is_operand() && raw[i+1].is_operand() {
+			if raw[i].is_operand() && raw[i + 1].is_operand() {
 				raw.insert(i + 1, Expr::Op(Op::Mul));
 			} else {
 				i += 1;
 			}
 		}
-		
+
 		let mut new = Vec::new();
 		for texpr in raw {
 			match texpr {
 				Expr::Sub(texprs) => new.push(Expr::Sub(Self::insert_operators(texprs))),
-				Expr::Func(name, args) => new.push(Expr::Func(name, args.into_iter().map(|texprs| Self::insert_operators(texprs)).collect())),
+				Expr::Func(name, args) => new.push(Expr::Func(
+					name,
+					args.into_iter()
+						.map(|texprs| Self::insert_operators(texprs))
+						.collect(),
+				)),
 				t => new.push(t),
 			}
 		}
-		
+
 		new
 	}
-	
+
 	/// Convert a vector of infix tokenexprs to a postfix representations
 	fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
 		fn recurse(raw: &[Expr]) -> Vec<Expr> {
@@ -216,7 +219,7 @@ impl Expression {
 							}
 						}
 						ops.push(op.clone());
-					},
+					}
 					Expr::Var(ref name) => stack.push(Expr::Var(name.clone())),
 					Expr::Func(ref name, ref texprs_args) => stack.push(Expr::Func(name.clone(), {
 						let mut new_texprs_args = Vec::new();
@@ -225,18 +228,19 @@ impl Expression {
 						}
 						new_texprs_args
 					})),
-					Expr::Sub(ref texprs) => stack.push(Expr::Sub(recurse(texprs)))
+					Expr::Sub(ref texprs) => stack.push(Expr::Sub(recurse(texprs))),
 				}
 			}
-			while let Some(op) = ops.pop() { // Push leftover operators onto stack
+			while let Some(op) = ops.pop() {
+				// Push leftover operators onto stack
 				stack.push(Expr::Op(op));
 			}
 			stack
 		}
-		
+
 		recurse(&raw)
 	}
-	
+
 	fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, Expected> {
 		let mut stack = Vec::new();
 		for texpr in raw {
@@ -251,19 +255,34 @@ impl Expression {
 							}
 						}
 					}
-					
+
 					let oper: Box<Operate> = match op {
-						Op::Add => Box::new(Add { b: pop!(), a: pop!() }),
-						Op::Sub => Box::new(Sub { b: pop!(), a: pop!() }),
-						Op::Mul => Box::new(Mul { b: pop!(), a: pop!() }),
-						Op::Div => Box::new(Div { b: pop!(), a: pop!() }),
-						Op::Pow => Box::new(Pow { b: pop!(), a: pop!() }),
+						Op::Add => Box::new(Add {
+							b: pop!(),
+							a: pop!(),
+						}),
+						Op::Sub => Box::new(Sub {
+							b: pop!(),
+							a: pop!(),
+						}),
+						Op::Mul => Box::new(Mul {
+							b: pop!(),
+							a: pop!(),
+						}),
+						Op::Div => Box::new(Div {
+							b: pop!(),
+							a: pop!(),
+						}),
+						Op::Pow => Box::new(Pow {
+							b: pop!(),
+							a: pop!(),
+						}),
 					};
 					stack.push(Term::Operation(oper));
-				},
+				}
 				Expr::Sub(texprs) => {
 					stack.push(Self::postfix_to_term(texprs)?);
-				},
+				}
 				Expr::Var(name) => stack.push(Term::Var(name)),
 				Expr::Func(name, args) => {
 					stack.push(Term::Function(name, {
@@ -273,15 +292,15 @@ impl Expression {
 						}
 						new
 					}));
-				},
+				}
 			}
 		}
 		if stack.len() > 1 {
-			return Err(Expected::Operator)
+			return Err(Expected::Operator);
 		}
 		Ok(stack.pop().unwrap_or(Term::Num(0.0))) // hmmm....
 	}
-	
+
 	pub fn into_term(self) -> Term {
 		self.term
 	}
