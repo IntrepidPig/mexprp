@@ -11,7 +11,7 @@
 //! ```rust
 //! # let res =
 //! mexprp::eval("10 / (2 + 3)"); // Ok(2.0)
-//! # assert_eq!(res, Ok(2.0));
+//! # assert_eq!(res.unwrap(), 2.0);
 //! ```
 //!
 //! ### Compiling an expression
@@ -20,7 +20,7 @@
 //! # use mexprp::Expression;
 //! let expr = Expression::parse("3 ^ 4 / 9").unwrap();
 //! let res = expr.eval(); // Ok(9.0)
-//! # assert_eq!(res, Ok(9.0));
+//! # assert_eq!(res.unwrap(), 9.0);
 //! ```
 
 #![deny(missing_docs)]

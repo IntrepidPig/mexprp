@@ -38,12 +38,20 @@ fn parse_token(raw: &str, token_type: TokenType) -> Result<Token, Error> {
 			"*" => Token::Op(Op::Mul),
 			"/" => Token::Op(Op::Div),
 			"^" => Token::Op(Op::Pow),
-			_ => return Err(UnexpectedToken { token: raw.to_string() }.into()),
+			_ => {
+				return Err(UnexpectedToken {
+					token: raw.to_string(),
+				}.into())
+			}
 		},
 		TokenType::Paren => match raw {
 			"(" => Token::Paren(Paren::Open),
 			")" => Token::Paren(Paren::Close),
-			_ => return Err(UnexpectedToken { token: raw.to_string() }.into()),
+			_ => {
+				return Err(UnexpectedToken {
+					token: raw.to_string(),
+				}.into())
+			}
 		},
 		TokenType::Num => {
 			if raw == "-" {
@@ -55,7 +63,11 @@ fn parse_token(raw: &str, token_type: TokenType) -> Result<Token, Error> {
 		TokenType::Name => Token::Name(raw.to_string()),
 		TokenType::Comma => match raw {
 			"," => Token::Comma,
-			_ => return Err(UnexpectedToken { token: raw.to_string() }.into()),
+			_ => {
+				return Err(UnexpectedToken {
+					token: raw.to_string(),
+				}.into())
+			}
 		},
 	})
 }
@@ -74,7 +86,9 @@ fn token_type(raw: char, expected: Expected) -> Result<TokenType, UnexpectedToke
 	} else if raw.is_alphabetic() && expected.name {
 		Ok(TokenType::Name)
 	} else {
-		Err(UnexpectedToken { token: raw.to_string() })
+		Err(UnexpectedToken {
+			token: raw.to_string(),
+		})
 	}
 }
 

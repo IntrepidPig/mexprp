@@ -35,15 +35,15 @@ impl Context {
 
 		ctx
 	}
-	
-	pub fn add_var<T: Into<Term>>(&mut self, name: &str, val: T) -> Result<(), ()> {
+
+	/// Add a variable definition to the context, replacing any existing one with the same name
+	pub fn add_var<T: Into<Term>>(&mut self, name: &str, val: T) {
 		self.vars.insert(name.to_string(), val.into());
-		Ok(())
 	}
 
-	pub fn add_func<F: Func + 'static>(&mut self, name: &str, func: F) -> Result<(), ()> {
+	/// Add a function definition to the context, replacing any existing one with the same name
+	pub fn add_func<F: Func + 'static>(&mut self, name: &str, func: F) {
 		self.funcs.insert(name.to_string(), Box::new(func));
-		Ok(())
 	}
 }
 

@@ -1,14 +1,20 @@
 extern crate simplelog;
 
+use std::sync::{Once, ONCE_INIT};
+
 use {Calculation, Context, Expression, Term};
 use eval;
 
-fn init_logs() {
-	use self::simplelog::*;
+static ONCE: Once = ONCE_INIT;
 
-	CombinedLogger::init(vec![
-		TermLogger::new(LevelFilter::Trace, Config::default()).unwrap(),
-	]).unwrap();
+fn init_logs() {
+	ONCE.call_once(|| {
+		use self::simplelog::*;
+
+		CombinedLogger::init(vec![
+			TermLogger::new(LevelFilter::Trace, Config::default()).unwrap(),
+		]).unwrap();
+	});
 }
 
 #[test]
@@ -26,8 +32,8 @@ fn var_context() {
 	init_logs();
 	let expr = Expression::parse("3 - x ^ (0-3 + 0.22)").unwrap();
 	let mut ctx = Context::new();
-	ctx.add_var("x", 7.0).unwrap();
-	ctx.add_var("y", 0.22).unwrap();
+	ctx.add_var("x", 7.0);
+	ctx.add_var("y", 0.22);
 	assert!((expr.eval_ctx(&ctx).unwrap() - 2.995526705934608).abs() < 0.001);
 }
 
@@ -39,7 +45,7 @@ fn expr_context() {
 	ctx.add_var(
 		"something",
 		Expression::parse("(0-8) ^ 2").unwrap().into_term(),
-	).unwrap(); // TODO impl From<Expression> for Term
+	); // TODO impl From<Expression> for Term
 	assert_eq!(expr.eval_ctx(&ctx).unwrap(), 192.0);
 }
 
@@ -48,7 +54,7 @@ fn funky() {
 	init_logs();
 	let expr = Expression::parse("3(x * -(3 + 1))").unwrap();
 	let mut ctx = Context::new();
-	ctx.add_var("x", 2.0).unwrap();
+	ctx.add_var("x", 2.0);
 	assert_eq!(expr.eval_ctx(&ctx).unwrap(), -24.0);
 }
 
@@ -65,15 +71,13 @@ fn funcs() {
 	assert!(eq(eval("max(sin(2), 5000000, -4)").unwrap(), 5000000.0));
 	assert!(eq(eval("min(2 / -3 * 3 * 3, 5000000, -4)").unwrap(), -6.0));
 	let mut context = Context::new();
-	context
-		.add_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
-			let mut x = 0.0;
-			for arg in args {
-				x += arg.eval(ctx)?;
-			}
-			Ok(x)
-		})
-		.unwrap();
+	context.add_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
+		let mut x = 0.0;
+		for arg in args {
+			x += arg.eval(ctx)?;
+		}
+		Ok(x)
+	});
 	let expr = Expression::parse_ctx("sum(4, 5, 6) / 3", &context).unwrap();
 	assert!(eq(expr.eval_ctx(&context).unwrap(), 5.0));
 }

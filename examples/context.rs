@@ -10,27 +10,25 @@ fn main() {
 	// A context holds data that can be used in an expression
 	let mut context = Context::new();
 	// Add a variable "x" to the context with the value 5.4
-	context.add_var("x", 5.4).unwrap();
+	context.add_var("x", 5.4);
 	// Add a function "sum" to the context that returns the sum of it's arguments. A closure is passed
 	// in that takes twp arguments: args: &[Term], which is a slice if the arguments passed into the
 	// function, and ctx: &Context, which is a reference to the context which the expression is being
 	// evaluated with. The item passed in can be anything that implements the `Func` trait. There exists
 	// a blanket impl for Fn(&[Term], &Context) -> Calculation which allows you to pass in closures in
 	// that format.
-	context
-		.add_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
-			if args.len() < 1 {
-				return Err(MathError::IncorrectArguments);
-			};
+	context.add_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
+		if args.len() < 1 {
+			return Err(MathError::IncorrectArguments);
+		};
 
-			let mut sum = 0.0;
-			for arg in args {
-				sum += arg.eval(ctx)?;
-			}
+		let mut sum = 0.0;
+		for arg in args {
+			sum += arg.eval(ctx)?;
+		}
 
-			Ok(sum)
-		})
-		.unwrap();
+		Ok(sum)
+	});
 
 	let raw = "2 * sum(x, 7, 400)";
 	// The expression needs to be parsed with the context in order do decide if some names are functions

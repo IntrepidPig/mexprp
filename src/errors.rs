@@ -18,13 +18,13 @@ pub enum MathError {
 	#[fail(display = "Variable '{}' is not defined", name)]
 	UndefinedVariable {
 		/// The name of the variable
-		name: String
+		name: String,
 	},
 	/// A function that was not defined in the context was referenced
 	#[fail(display = "Function '{}' is not defined", name)]
 	UndefinedFunction {
 		/// The name of the function
-		name: String
+		name: String,
 	},
 	/// A function was given arguments in an incorrect form
 	#[fail(display = "A function was passed incorrect arguments")]
