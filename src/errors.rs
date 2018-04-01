@@ -9,7 +9,13 @@ pub struct MismatchedParenthesis;
 #[derive(Debug, Fail)]
 #[fail(display = "Variable {} wasn't set to a value", name)]
 pub struct UninitializedVar {
-	name: String,
+	pub name: String,
+}
+
+#[derive(Debug, Clone, Fail)]
+#[fail(display = "Name was already in use: {}", name)]
+pub struct NameInUse {
+	pub name: String,
 }
 
 #[derive(Debug, Fail)]

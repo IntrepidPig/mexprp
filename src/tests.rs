@@ -1,6 +1,6 @@
 extern crate simplelog;
 
-use {Expression, Context, Term, Calculation, Func};
+use {Expression, Context, Term, Calculation};
 use eval;
 
 fn init_logs() {
@@ -24,8 +24,8 @@ fn var_context() {
 	init_logs();
 	let expr = Expression::parse("3 - x ^ (0-3 + 0.22)").unwrap();
 	let mut ctx = Context::new();
-	ctx.add_var("x", 7.0);
-	ctx.add_var("y", 0.22);
+	ctx.add_var("x", 7.0).unwrap();
+	ctx.add_var("y", 0.22).unwrap();
 	assert!((expr.eval_ctx(&ctx).unwrap() - 2.995526705934608).abs() < 0.001);
 }
 
@@ -34,7 +34,7 @@ fn expr_context() {
 	init_logs();
 	let expr = Expression::parse("3 * something").unwrap();
 	let mut ctx = Context::new();
-	ctx.add_var("something", Expression::parse("(0-8) ^ 2").unwrap().into_term()); // TODO impl From<Expression> for Term
+	ctx.add_var("something", Expression::parse("(0-8) ^ 2").unwrap().into_term()).unwrap(); // TODO impl From<Expression> for Term
 	assert_eq!(expr.eval_ctx(&ctx).unwrap(), 192.0);
 }
 
@@ -43,7 +43,7 @@ fn funky() {
 	init_logs();
 	let expr = Expression::parse("3(x * -(3 + 1))").unwrap();
 	let mut ctx = Context::new();
-	ctx.add_var("x", 2.0);
+	ctx.add_var("x", 2.0).unwrap();
 	assert_eq!(expr.eval_ctx(&ctx).unwrap(), -24.0);
 }
 

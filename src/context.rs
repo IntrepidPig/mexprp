@@ -1,9 +1,8 @@
 use std::collections::HashMap;
 
-use expr::{Term, Calculation};
-use func::{Func};
-
-pub struct NameInUse;
+use expr::Term;
+use func::Func;
+use errors::NameInUse;
 
 pub struct Context {
 	pub vars: HashMap<String, Term>,
@@ -29,7 +28,7 @@ impl Context {
 	
 	pub fn add_var<T: Into<Term>>(&mut self, name: &str, val: T) -> Result<(), NameInUse> {
 		if self.funcs.contains_key(name) {
-			return Err(NameInUse)
+			return Err(NameInUse { name: name.to_string() })
 		}
 		
 		self.vars.insert(name.to_string(), val.into());
@@ -38,7 +37,7 @@ impl Context {
 	
 	pub fn add_func<F: Func + 'static>(&mut self, name: &str, func: F) -> Result<(), NameInUse> {
 		if self.vars.contains_key(name) {
-			return Err(NameInUse)
+			return Err(NameInUse { name: name.to_string() })
 		}
 		
 		self.funcs.insert(name.to_string(), Box::new(func));

@@ -3,12 +3,10 @@ use std::fmt;
 use op::*;
 use opers::*;
 use parse::*;
-use func::Func;
 use errors::*;
 use context::*;
 
 use failure::Error;
-use failure::err_msg;
 
 #[derive(Debug)]
 pub enum Term {
@@ -113,7 +111,7 @@ impl Expression {
 		// Names that have yet to be decided
 		let mut pending_name = None;
 		
-		for (i, rt) in raw.into_iter().enumerate() {
+		for rt in raw {
 			trace!("Have paren token: {:?}", rt);
 			match rt {
 				ParenToken::Num(num) => { // Names followed by numbers aren't functions

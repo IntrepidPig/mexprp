@@ -288,28 +288,3 @@ pub(crate) fn get_tokens(raw: &str) -> Result<Vec<ParenToken>, Error> {
 	
 	Ok(paren_tokens)
 }
-
-/// Finds the index of the matching close parentheses of an open parentheses present a `start` of a
-/// string. Start should be the index of the starting open parentheses and the function will return
-/// the index of the end parentheses.
-fn match_paren_str(string: &str, start: usize) -> Result<usize, MismatchedParenthesis> {
-	let string = &string[start..string.len()];
-	let mut count = 0;
-	let mut index = start;
-	
-	for c in string.chars() {
-		match c {
-			'(' => count += 1,
-			')' => count -= 1,
-			_ => {},
-		}
-		
-		index += c.len_utf8();
-		
-		if count == 0 {
-			return Ok(index);
-		}
-	}
-	
-	Err(MismatchedParenthesis)
-}
