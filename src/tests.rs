@@ -66,7 +66,7 @@ fn funcs() {
 			x += arg.eval(ctx)?;
 		}
 		Ok(x)
-	});
+	}).unwrap();
 	let expr = Expression::parse_ctx("sum(4, 5, 6) / 3", &context).unwrap();
 	assert!(eq(expr.eval_ctx(&context).unwrap(), 5.0));
 }
