@@ -176,7 +176,7 @@ impl Expression {
 				}
 				// There should be no commas here, they should have been removed during the Self::tokens_to_args calls
 				// that happen when pushing a function.
-				ParenToken::Comma => return Err(UnexpectedToken(String::from(",")).into()),
+				ParenToken::Comma => return Err(UnexpectedToken { token: String::from(",") }.into()),
 			}
 		}
 

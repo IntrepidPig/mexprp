@@ -2,7 +2,6 @@ use std::collections::HashMap;
 
 use expr::Term;
 use func::Func;
-use errors::NameInUse;
 
 /// A context holds values for variables and functions to be used in expressions. It is useful for both
 /// parsing and evaluation expressions. During parsing, all names will be treated as variables unless
@@ -36,25 +35,13 @@ impl Context {
 
 		ctx
 	}
-
-	pub fn add_var<T: Into<Term>>(&mut self, name: &str, val: T) -> Result<(), NameInUse> {
-		if self.funcs.contains_key(name) {
-			return Err(NameInUse {
-				name: name.to_string(),
-			});
-		}
-
+	
+	pub fn add_var<T: Into<Term>>(&mut self, name: &str, val: T) -> Result<(), ()> {
 		self.vars.insert(name.to_string(), val.into());
 		Ok(())
 	}
 
-	pub fn add_func<F: Func + 'static>(&mut self, name: &str, func: F) -> Result<(), NameInUse> {
-		if self.vars.contains_key(name) {
-			return Err(NameInUse {
-				name: name.to_string(),
-			});
-		}
-
+	pub fn add_func<F: Func + 'static>(&mut self, name: &str, func: F) -> Result<(), ()> {
 		self.funcs.insert(name.to_string(), Box::new(func));
 		Ok(())
 	}

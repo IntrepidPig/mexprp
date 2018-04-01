@@ -97,18 +97,3 @@ impl Operate for Pow {
 		format!("({} ^ {})", self.a, self.b)
 	}
 }
-
-pub struct Operation {
-	inner: Box<Operate>,
-}
-
-impl Operation {}
-
-impl<T> From<T> for Operation
-where
-	T: Operate + 'static,
-{
-	fn from(t: T) -> Self {
-		Self { inner: Box::new(t) }
-	}
-}

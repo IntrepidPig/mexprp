@@ -17,14 +17,6 @@ impl Op {
 		}
 	}
 
-	pub fn is_higher(&self, other: Op) -> bool {
-		self.precedence() > other.precedence()
-	}
-
-	pub fn is_lower(&self, other: Op) -> bool {
-		self.precedence() < other.precedence()
-	}
-
 	pub fn is_left_associative(&self) -> bool {
 		use self::Op::*;
 		match *self {
@@ -34,10 +26,6 @@ impl Op {
 			Add => true,
 			Sub => true,
 		}
-	}
-
-	pub fn is_right_associative(&self) -> bool {
-		!self.is_left_associative()
 	}
 
 	pub fn to_string(&self) -> String {
