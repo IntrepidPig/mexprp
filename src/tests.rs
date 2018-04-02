@@ -1,22 +1,7 @@
-extern crate simplelog;
-
-use std::sync::{Once, ONCE_INIT};
-
-use {Calculation, Context, Expression, Term};
-use eval;
-
-static ONCE: Once = ONCE_INIT;
-
-fn init_logs() {
-	ONCE.call_once(|| {
-		use self::simplelog::*;
-		TermLogger::init(LevelFilter::Trace, Config::default()).unwrap();
-	});
-}
+use {eval, Calculation, Context, Expression, Term};
 
 #[test]
 fn basic() {
-	init_logs();
 	let raw = "(3 * (17.8 - 4) ^ 2) / 7";
 	println!("\nParsing {}", raw);
 	let expr = Expression::parse(raw).unwrap();
@@ -26,7 +11,6 @@ fn basic() {
 
 #[test]
 fn var_context() {
-	init_logs();
 	let expr = Expression::parse("3 - x ^ (0-3 + 0.22)").unwrap();
 	let mut ctx = Context::new();
 	ctx.set_var("x", 7.0);
@@ -36,7 +20,6 @@ fn var_context() {
 
 #[test]
 fn expr_context() {
-	init_logs();
 	let expr = Expression::parse("3 * something").unwrap();
 	let mut ctx = Context::new();
 	ctx.set_var("something", Expression::parse("(0-8) ^ 2").unwrap());
@@ -45,7 +28,6 @@ fn expr_context() {
 
 #[test]
 fn funky() {
-	init_logs();
 	let expr = Expression::parse("3(x * -(3 + 1))").unwrap();
 	let mut ctx = Context::new();
 	ctx.set_var("x", 2.0);
@@ -54,14 +36,12 @@ fn funky() {
 
 #[test]
 fn sin() {
-	init_logs();
 	let expr = Expression::parse("2 + sin(3.1415926)").unwrap();
 	assert!((expr.eval().unwrap() - 2.0) < 0.005);
 }
 
 #[test]
 fn funcs() {
-	init_logs();
 	assert!(eq(eval("max(sin(2), 5000000, -4)").unwrap(), 5000000.0));
 	assert!(eq(eval("min(2 / -3 * 3 * 3, 5000000, -4)").unwrap(), -6.0));
 	let mut context = Context::new();
