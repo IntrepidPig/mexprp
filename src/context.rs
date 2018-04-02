@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::f64::consts;
 
 use expr::Term;
 use func::Func;
@@ -27,6 +28,9 @@ impl Context {
 			vars: HashMap::new(),
 			funcs: HashMap::new(),
 		};
+		
+		ctx.set_var("pi", consts::PI);
+		ctx.set_var("e", consts::E);
 
 		ctx.funcs.insert("sin".to_string(), Box::new(Sin));
 		ctx.funcs.insert("cos".to_string(), Box::new(Cos));
