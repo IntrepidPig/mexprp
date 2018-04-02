@@ -1,6 +1,6 @@
 [package]
 name = "mexprp"
-version = "0.0.1"
+version = "0.1.0"
 authors = ["Benny A <virusdownloader7@gmail.com>"]
 
 [dependencies]
