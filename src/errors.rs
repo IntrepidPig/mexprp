@@ -1,6 +1,6 @@
 /// Got an unexpected token
 #[derive(Debug, Fail)]
-#[fail(display = "Got unexpected token")]
+#[fail(display = "Got unexpected token: '{}'", token)]
 pub struct UnexpectedToken {
 	/// The token
 	pub token: String,
