@@ -3,5 +3,6 @@ Cargo.lock
 mexprp.iml
 .idea/
 .vscode/
+examples/test.rs
 /target/
 **/*.rs.bk
