@@ -1,5 +1,3 @@
-use failure::Error;
-
 use op::*;
 use errors::*;
 
@@ -175,7 +173,7 @@ fn get_parse_order(last: Option<&Token>) -> &[TokenFn] {
 
 /// Get the next token of a string based on the last token. Returns either a Token and the rest of the
 /// string or an error
-fn next_token<'a>(raw: &'a str, last: Option<&Token>) -> Result<(Token, &'a str), UnexpectedToken> {
+fn next_token<'a>(raw: &'a str, last: Option<&Token>) -> Result<(Token, &'a str), ParseError> {
 	let parseorder = get_parse_order(last);
 
 	let mut tok_start = 0;
@@ -195,13 +193,13 @@ fn next_token<'a>(raw: &'a str, last: Option<&Token>) -> Result<(Token, &'a str)
 		}
 	}
 
-	Err(UnexpectedToken {
+	Err(ParseError::UnexpectedToken {
 		token: raw.chars().next().unwrap().to_string(),
 	})
 }
 
 /// Convert a string to a list of tokens
-fn to_tokens(mut raw: &str) -> Result<Vec<Token>, UnexpectedToken> {
+fn to_tokens(mut raw: &str) -> Result<Vec<Token>, ParseError> {
 	let mut tokens = Vec::new();
 	while !raw.is_empty() {
 		let (tok, new_raw) = next_token(raw, tokens.last())?;
@@ -212,9 +210,9 @@ fn to_tokens(mut raw: &str) -> Result<Vec<Token>, UnexpectedToken> {
 }
 
 /// Convert tokens to a tree based on expression within parentheses
-fn to_paren_tokens(raw: Vec<Token>) -> Result<Vec<ParenToken>, Error> {
+fn to_paren_tokens(raw: Vec<Token>) -> Result<Vec<ParenToken>, ParseError> {
 	trace!("Converting raw tokens to paren tokens");
-	fn recurse(raw: &[Token]) -> Result<Vec<ParenToken>, Error> {
+	fn recurse(raw: &[Token]) -> Result<Vec<ParenToken>, ParseError> {
 		let mut parentokens = Vec::new();
 
 		let mut start = 0;
@@ -245,7 +243,7 @@ fn to_paren_tokens(raw: Vec<Token>) -> Result<Vec<ParenToken>, Error> {
 
 					if paren_count < 0 {
 						// Ensure we haven't gone below the amount of parentheses
-						return Err(MismatchedParenthesis.into());
+						return Err(ParseError::MismatchedParentheses);
 					}
 
 					if paren_count == 0 {
@@ -274,7 +272,7 @@ fn to_paren_tokens(raw: Vec<Token>) -> Result<Vec<ParenToken>, Error> {
 }
 
 /// Get ParenTokens from a string
-pub(crate) fn get_tokens(raw: &str) -> Result<Vec<ParenToken>, Error> {
+pub(crate) fn get_tokens(raw: &str) -> Result<Vec<ParenToken>, ParseError> {
 	let raw_tokens = to_tokens(raw)?;
 	debug!("Raw tokens: {:?}", raw_tokens);
 	let paren_tokens = to_paren_tokens(raw_tokens)?;

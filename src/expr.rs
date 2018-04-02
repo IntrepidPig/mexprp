@@ -6,8 +6,6 @@ use parse::*;
 use errors::*;
 use context::*;
 
-use failure::Error;
-
 /// The main representation of parsed equations. It is an operand that can contain an operation between
 /// more of itself. This form is necessary for the equation to be evaluated.
 #[derive(Debug)]
@@ -95,13 +93,13 @@ pub struct Expression {
 
 impl Expression {
 	/// Parse a string into an expression
-	pub fn parse(raw: &str) -> Result<Self, Error> {
+	pub fn parse(raw: &str) -> Result<Self, ParseError> {
 		let ctx = Context::new();
 		Self::parse_ctx(raw, &ctx)
 	}
 
 	/// Parse a string into an expression with the given context
-	pub fn parse_ctx(raw: &str, ctx: &Context) -> Result<Self, Error> {
+	pub fn parse_ctx(raw: &str, ctx: &Context) -> Result<Self, ParseError> {
 		let raw = raw.trim();
 		debug!("Parsing '{}'", raw);
 		let paren_tokens = get_tokens(raw)?;
@@ -135,7 +133,7 @@ impl Expression {
 	/// Convert ParenTokens to exprs. This function accomplishes two things at once. First, it decides
 	/// if names are functions or variables depending on their context. Second, it splits the arguments
 	/// of a function up by their commas, removing the need for a comma in the token representation.
-	fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, Error> {
+	fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, ParseError> {
 		trace!("Converting paren tokens to exprs");
 		let mut mtokens = Vec::new();
 		// Names that have yet to be decided
@@ -183,9 +181,9 @@ impl Expression {
 				// There should be no commas here, they should have been removed during the Self::tokens_to_args calls
 				// that happen when pushing a function.
 				ParenToken::Comma => {
-					return Err(UnexpectedToken {
+					return Err(ParseError::UnexpectedToken {
 						token: String::from(","),
-					}.into())
+					})
 				}
 			}
 		}
@@ -200,7 +198,7 @@ impl Expression {
 
 	/// Converts a Vec of ParenTokens into a Vec of a Vec of Exprs, splitting them by commas and
 	/// then parsing them into Exprs.
-	fn tokens_to_args(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Vec<Expr>>, Error> {
+	fn tokens_to_args(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Vec<Expr>>, ParseError> {
 		let args: Vec<&[ParenToken]> = raw.split(|ptoken| match *ptoken {
 			ParenToken::Comma => true,
 			_ => false,
@@ -297,7 +295,7 @@ impl Expression {
 	}
 
 	/// Parse a postfix token stream into a single term
-	fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, Expected> {
+	fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
 		let mut stack = Vec::new();
 		for texpr in raw {
 			match texpr {
@@ -308,7 +306,9 @@ impl Expression {
 						() => {
 							match stack.pop() {
 								Some(v) => v,
-								None => return Err(Expected::Expression)
+								None => return Err(ParseError::Expected {
+									expected: Expected::Expression
+								}),
 							}
 						}
 					}
@@ -356,13 +356,17 @@ impl Expression {
 		}
 		if stack.len() > 1 {
 			// If there's leftovers on the stack, oops
-			return Err(Expected::Operator);
+			return Err(ParseError::Expected {
+				expected: Expected::Operator
+			});
 		}
 
 		if let Some(term) = stack.pop() {
 			Ok(term)
 		} else {
-			Err(Expected::Expression)
+			Err(ParseError::Expected {
+				expected: Expected::Expression
+			})
 		}
 	}
 
