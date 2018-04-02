@@ -39,10 +39,7 @@ fn expr_context() {
 	init_logs();
 	let expr = Expression::parse("3 * something").unwrap();
 	let mut ctx = Context::new();
-	ctx.set_var(
-		"something",
-		Expression::parse("(0-8) ^ 2").unwrap(),
-	);
+	ctx.set_var("something", Expression::parse("(0-8) ^ 2").unwrap());
 	assert_eq!(expr.eval_ctx(&ctx).unwrap(), 192.0);
 }
 
