@@ -23,7 +23,7 @@ fn main() {
 
 		let mut sum = 0.0;
 		for arg in args {
-			sum += arg.eval(ctx)?;
+			sum += arg.eval_ctx(ctx)?;
 		}
 
 		Ok(sum)

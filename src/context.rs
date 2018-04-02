@@ -72,7 +72,7 @@ pub(in context) mod funcs {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			Ok(args[0].eval(ctx)?.sin())
+			Ok(args[0].eval_ctx(ctx)?.sin())
 		}
 	}
 
@@ -82,7 +82,7 @@ pub(in context) mod funcs {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			Ok(args[0].eval(ctx)?.cos())
+			Ok(args[0].eval_ctx(ctx)?.cos())
 		}
 	}
 
@@ -92,9 +92,9 @@ pub(in context) mod funcs {
 			if args.is_empty() {
 				return Err(MathError::IncorrectArguments);
 			}
-			let mut max = args[0].eval(ctx)?;
+			let mut max = args[0].eval_ctx(ctx)?;
 			for arg in &args[1..args.len()] {
-				let arg = arg.eval(ctx)?;
+				let arg = arg.eval_ctx(ctx)?;
 				if float_cmp(arg, max)? == Ordering::Greater {
 					max = arg;
 				}
@@ -109,9 +109,9 @@ pub(in context) mod funcs {
 			if args.is_empty() {
 				return Err(MathError::IncorrectArguments);
 			}
-			let mut max = args[0].eval(ctx)?;
+			let mut max = args[0].eval_ctx(ctx)?;
 			for arg in &args[1..args.len()] {
-				let arg = arg.eval(ctx)?;
+				let arg = arg.eval_ctx(ctx)?;
 				if float_cmp(arg, max)? == Ordering::Less {
 					max = arg;
 				}
@@ -127,7 +127,7 @@ pub(in context) mod funcs {
 				return Err(MathError::IncorrectArguments);
 			}
 
-			Ok(args[0].eval(ctx)?.sqrt())
+			Ok(args[0].eval_ctx(ctx)?.sqrt())
 		}
 	}
 

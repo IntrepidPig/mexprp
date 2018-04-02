@@ -38,8 +38,32 @@ enum Expr {
 }
 
 impl Term {
+	/// Parse a string into an expression
+	pub fn parse(raw: &str) -> Result<Self, ParseError> {
+		let ctx = Context::new();
+		Self::parse_ctx(raw, &ctx)
+	}
+	
+	/// Parse a string into an expression with the given context
+	pub fn parse_ctx(raw: &str, ctx: &Context) -> Result<Self, ParseError> {
+		let raw = raw.trim();
+		let paren_tokens = get_tokens(raw)?;
+		let exprs = paren_to_exprs(paren_tokens, ctx)?;
+		let exprs = insert_operators(exprs);
+		let postfix = tokenexprs_to_postfix(exprs);
+		let term = postfix_to_term(postfix)?;
+		
+		Ok(term)
+	}
+	
+	/// Evaluate the term with the default context
+	pub fn eval(&self) -> Calculation {
+		let ctx = Context::new();
+		self.eval_ctx(&ctx)
+	}
+	
 	/// Evaluate the term with the given context
-	pub fn eval(&self, ctx: &Context) -> Calculation {
+	pub fn eval_ctx(&self, ctx: &Context) -> Calculation {
 		// Evaluate each possible term type
 		match *self {
 			Term::Num(num) => Ok(num),                   // Already evaluated
@@ -55,7 +79,7 @@ impl Term {
 			Term::Var(ref name) => {
 				// Retrieve the value of the variable, if it exists
 				if let Some(var) = ctx.vars.get(name) {
-					var.eval(ctx)
+					var.eval_ctx(ctx)
 				} else {
 					Err(MathError::UndefinedVariable { name: name.clone() })
 				}
@@ -101,11 +125,7 @@ impl Expression {
 	/// Parse a string into an expression with the given context
 	pub fn parse_ctx(raw: &str, ctx: &Context) -> Result<Self, ParseError> {
 		let raw = raw.trim();
-		let paren_tokens = get_tokens(raw)?;
-		let exprs = Self::paren_to_exprs(paren_tokens, ctx)?;
-		let exprs = Self::insert_operators(exprs);
-		let postfix = Self::tokenexprs_to_postfix(exprs);
-		let term = Self::postfix_to_term(postfix)?;
+		let term = Term::parse_ctx(raw, ctx)?;
 
 		Ok(Self {
 			string: raw.to_string(),
@@ -121,178 +141,184 @@ impl Expression {
 
 	/// Evaluate the expression with the given context
 	pub fn eval_ctx(&self, ctx: &Context) -> Calculation {
-		self.term.eval(ctx)
+		self.term.eval_ctx(ctx)
 	}
 
-	/// Convert ParenTokens to exprs. This function accomplishes two things at once. First, it decides
+	/// Convert the Expression into it's pure Term representation
+	pub fn into_term(self) -> Term {
+		self.term
+	}
+}
+
+/// Convert ParenTokens to exprs. This function accomplishes two things at once. First, it decides
 	/// if names are functions or variables depending on their context. Second, it splits the arguments
 	/// of a function up by their commas, removing the need for a comma in the token representation.
-	fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, ParseError> {
-		let mut mtokens = Vec::new();
-		// Names that have yet to be decided
-		let mut pending_name = None;
-
-		for rt in raw {
-			match rt {
-				ParenToken::Num(num) => {
-					// Names followed by numbers aren't functions
-					if let Some(pending_name) = pending_name.take() {
-						mtokens.push(Expr::Var(pending_name));
-					}
-					mtokens.push(Expr::Num(num));
+fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, ParseError> {
+	let mut mtokens = Vec::new();
+	// Names that have yet to be decided
+	let mut pending_name = None;
+	
+	for rt in raw {
+		match rt {
+			ParenToken::Num(num) => {
+				// Names followed by numbers aren't functions
+				if let Some(pending_name) = pending_name.take() {
+					mtokens.push(Expr::Var(pending_name));
 				}
-				ParenToken::Op(op) => {
-					// Names followed by operators aren't functions
-					if let Some(pending_name) = pending_name.take() {
-						mtokens.push(Expr::Var(pending_name));
-					}
-					mtokens.push(Expr::Op(op));
+				mtokens.push(Expr::Num(num));
+			}
+			ParenToken::Op(op) => {
+				// Names followed by operators aren't functions
+				if let Some(pending_name) = pending_name.take() {
+					mtokens.push(Expr::Var(pending_name));
 				}
-				ParenToken::Sub(sub) => {
-					if let Some(name) = pending_name.take() {
-						// If there was a name before this subexpression
-						if ctx.funcs.contains_key(&name) {
-							// If there's a function with the name
-							mtokens.push(Expr::Func(name, Self::tokens_to_args(sub, ctx)?)); // Push as a function, with the args parsed
-						} else {
-							mtokens.push(Expr::Var(name)); // It's a variable
-							mtokens.push(Expr::Sub(Self::paren_to_exprs(sub, ctx)?)); // Push the subexpression
-						}
+				mtokens.push(Expr::Op(op));
+			}
+			ParenToken::Sub(sub) => {
+				if let Some(name) = pending_name.take() {
+					// If there was a name before this subexpression
+					if ctx.funcs.contains_key(&name) {
+						// If there's a function with the name
+						mtokens.push(Expr::Func(name, tokens_to_args(sub, ctx)?)); // Push as a function, with the args parsed
 					} else {
-						// Just push the subexpression
-						mtokens.push(Expr::Sub(Self::paren_to_exprs(sub, ctx)?));
+						mtokens.push(Expr::Var(name)); // It's a variable
+						mtokens.push(Expr::Sub(paren_to_exprs(sub, ctx)?)); // Push the subexpression
 					}
-				}
-				ParenToken::Name(name) => {
-					// Names followed by names aren't functions
-					if let Some(pending_name) = pending_name.take() {
-						mtokens.push(Expr::Var(pending_name));
-					}
-					pending_name = Some(name);
-				}
-				// There should be no commas here, they should have been removed during the Self::tokens_to_args calls
-				// that happen when pushing a function.
-				ParenToken::Comma => {
-					return Err(ParseError::UnexpectedToken {
-						token: String::from(","),
-					})
+				} else {
+					// Just push the subexpression
+					mtokens.push(Expr::Sub(paren_to_exprs(sub, ctx)?));
 				}
 			}
-		}
-
-		if let Some(pending_name) = pending_name.take() {
-			// Push a leftover pending name
-			mtokens.push(Expr::Var(pending_name));
-		}
-
-		Ok(mtokens)
-	}
-
-	/// Converts a Vec of ParenTokens into a Vec of a Vec of Exprs, splitting them by commas and
-	/// then parsing them into Exprs.
-	fn tokens_to_args(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Vec<Expr>>, ParseError> {
-		let args: Vec<&[ParenToken]> = raw.split(|ptoken| match *ptoken {
-			ParenToken::Comma => true,
-			_ => false,
-		}).collect();
-
-		let mut new = Vec::new();
-		for arg in args {
-			if arg.is_empty() {
-				continue; // Ignore empty arguments (occurs when no arguments where passed to the function)
-			}
-			let arg = arg.to_vec();
-			new.push(Self::paren_to_exprs(arg, ctx)?)
-		}
-		Ok(new)
-	}
-
-	/// Insert multiplication operations in between operands that are right next to each other
-	#[cfg_attr(feature = "cargo-clippy", allow(redundant_closure))]
-	fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
-		let mut i = 0;
-
-		if raw.is_empty() {
-			// Don't panic on empty input
-			return Vec::new();
-		}
-
-		while i < raw.len() - 1 {
-			if raw[i].is_operand() && raw[i + 1].is_operand() {
-				raw.insert(i + 1, Expr::Op(Op::Mul));
-			} else {
-				i += 1;
-			}
-		}
-
-		let mut new = Vec::new();
-		for texpr in raw {
-			match texpr {
-				Expr::Sub(texprs) => new.push(Expr::Sub(Self::insert_operators(texprs))),
-				Expr::Func(name, args) => new.push(Expr::Func(
-					name,
-					args.into_iter()
-						.map(|texprs| Self::insert_operators(texprs))
-						.collect(),
-				)),
-				t => new.push(t),
-			}
-		}
-
-		new
-	}
-
-	/// Convert a vector of infix exprs to a postfix representations (shunting yard)
-	fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
-		fn recurse(raw: &[Expr]) -> Vec<Expr> {
-			let mut stack = Vec::new();
-			let mut ops: Vec<Op> = Vec::new();
-			for texpr in raw {
-				match *texpr {
-					Expr::Num(num) => stack.push(Expr::Num(num)), // Push number onto the stack
-					Expr::Op(ref op) => {
-						while let Some(top_op) = ops.pop() {
-							// Pop all operators with high enough precedence
-							if (top_op.precedence() > op.precedence()) || (top_op.precedence() == op.precedence() && top_op.is_left_associative()) {
-								stack.push(Expr::Op(top_op));
-							} else {
-								ops.push(top_op); // Put it back (not high enough precedence)
-								break;
-							}
-						}
-						ops.push(op.clone()); // Put the op on the stack
-					}
-					Expr::Var(ref name) => stack.push(Expr::Var(name.clone())), // Put the var on the stack
-					Expr::Func(ref name, ref texprs_args) => stack.push(Expr::Func(name.clone(), {
-						// Put the function on the stack
-						let mut new_texprs_args = Vec::new();
-						for texprs in texprs_args {
-							new_texprs_args.push(recurse(texprs)); // Do shunting yard for all of it's arguments
-						}
-						new_texprs_args
-					})),
-					Expr::Sub(ref texprs) => stack.push(Expr::Sub(recurse(texprs))), // Push the subexpression onto the stack
+			ParenToken::Name(name) => {
+				// Names followed by names aren't functions
+				if let Some(pending_name) = pending_name.take() {
+					mtokens.push(Expr::Var(pending_name));
 				}
+				pending_name = Some(name);
 			}
-			while let Some(op) = ops.pop() {
-				// Push leftover operators onto stack
-				stack.push(Expr::Op(op));
+			// There should be no commas here, they should have been removed during the Self::tokens_to_args calls
+			// that happen when pushing a function.
+			ParenToken::Comma => {
+				return Err(ParseError::UnexpectedToken {
+					token: String::from(","),
+				})
 			}
-			stack
 		}
-
-		recurse(&raw)
 	}
+	
+	if let Some(pending_name) = pending_name.take() {
+		// Push a leftover pending name
+		mtokens.push(Expr::Var(pending_name));
+	}
+	
+	Ok(mtokens)
+}
 
-	/// Parse a postfix token stream into a single term
-	fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
+/// Converts a Vec of ParenTokens into a Vec of a Vec of Exprs, splitting them by commas and
+/// then parsing them into Exprs.
+fn tokens_to_args(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Vec<Expr>>, ParseError> {
+	let args: Vec<&[ParenToken]> = raw.split(|ptoken| match *ptoken {
+		ParenToken::Comma => true,
+		_ => false,
+	}).collect();
+	
+	let mut new = Vec::new();
+	for arg in args {
+		if arg.is_empty() {
+			continue; // Ignore empty arguments (occurs when no arguments where passed to the function)
+		}
+		let arg = arg.to_vec();
+		new.push(paren_to_exprs(arg, ctx)?)
+	}
+	Ok(new)
+}
+
+/// Insert multiplication operations in between operands that are right next to each other
+#[cfg_attr(feature = "cargo-clippy", allow(redundant_closure))]
+fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
+	let mut i = 0;
+	
+	if raw.is_empty() {
+		// Don't panic on empty input
+		return Vec::new();
+	}
+	
+	while i < raw.len() - 1 {
+		if raw[i].is_operand() && raw[i + 1].is_operand() {
+			raw.insert(i + 1, Expr::Op(Op::Mul));
+		} else {
+			i += 1;
+		}
+	}
+	
+	let mut new = Vec::new();
+	for texpr in raw {
+		match texpr {
+			Expr::Sub(texprs) => new.push(Expr::Sub(insert_operators(texprs))),
+			Expr::Func(name, args) => new.push(Expr::Func(
+				name,
+				args.into_iter()
+					.map(|texprs| insert_operators(texprs))
+					.collect(),
+			)),
+			t => new.push(t),
+		}
+	}
+	
+	new
+}
+
+/// Convert a vector of infix exprs to a postfix representations (shunting yard)
+fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
+	fn recurse(raw: &[Expr]) -> Vec<Expr> {
 		let mut stack = Vec::new();
+		let mut ops: Vec<Op> = Vec::new();
 		for texpr in raw {
-			match texpr {
-				Expr::Num(num) => stack.push(Term::Num(num)), // Put num on the stack
-				Expr::Op(op) => {
-					// Push the operation with the last two operands on the stack
-					macro_rules! pop {
+			match *texpr {
+				Expr::Num(num) => stack.push(Expr::Num(num)), // Push number onto the stack
+				Expr::Op(ref op) => {
+					while let Some(top_op) = ops.pop() {
+						// Pop all operators with high enough precedence
+						if (top_op.precedence() > op.precedence()) || (top_op.precedence() == op.precedence() && top_op.is_left_associative()) {
+							stack.push(Expr::Op(top_op));
+						} else {
+							ops.push(top_op); // Put it back (not high enough precedence)
+							break;
+						}
+					}
+					ops.push(op.clone()); // Put the op on the stack
+				}
+				Expr::Var(ref name) => stack.push(Expr::Var(name.clone())), // Put the var on the stack
+				Expr::Func(ref name, ref texprs_args) => stack.push(Expr::Func(name.clone(), {
+					// Put the function on the stack
+					let mut new_texprs_args = Vec::new();
+					for texprs in texprs_args {
+						new_texprs_args.push(recurse(texprs)); // Do shunting yard for all of it's arguments
+					}
+					new_texprs_args
+				})),
+				Expr::Sub(ref texprs) => stack.push(Expr::Sub(recurse(texprs))), // Push the subexpression onto the stack
+			}
+		}
+		while let Some(op) = ops.pop() {
+			// Push leftover operators onto stack
+			stack.push(Expr::Op(op));
+		}
+		stack
+	}
+	
+	recurse(&raw)
+}
+
+/// Parse a postfix token stream into a single term
+fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
+	let mut stack = Vec::new();
+	for texpr in raw {
+		match texpr {
+			Expr::Num(num) => stack.push(Term::Num(num)), // Put num on the stack
+			Expr::Op(op) => {
+				// Push the operation with the last two operands on the stack
+				macro_rules! pop {
 						() => {
 							match stack.pop() {
 								Some(v) => v,
@@ -302,67 +328,61 @@ impl Expression {
 							}
 						}
 					}
-
-					let oper: Box<Operate> = match op {
-						Op::Add => Box::new(Add {
-							b: pop!(),
-							a: pop!(),
-						}),
-						Op::Sub => Box::new(Sub {
-							b: pop!(),
-							a: pop!(),
-						}),
-						Op::Mul => Box::new(Mul {
-							b: pop!(),
-							a: pop!(),
-						}),
-						Op::Div => Box::new(Div {
-							b: pop!(),
-							a: pop!(),
-						}),
-						Op::Pow => Box::new(Pow {
-							b: pop!(),
-							a: pop!(),
-						}),
-					};
-					stack.push(Term::Operation(oper));
-				}
-				Expr::Sub(texprs) => {
-					// Put subexpression on the stack
-					stack.push(Self::postfix_to_term(texprs)?);
-				}
-				Expr::Var(name) => stack.push(Term::Var(name)), // Put var on the stack
-				Expr::Func(name, args) => {
-					// Put function with args converted to terms on the stack
-					stack.push(Term::Function(name, {
-						let mut new = Vec::new();
-						for texprs in args {
-							new.push(Self::postfix_to_term(texprs)?);
-						}
-						new
-					}));
-				}
+				
+				let oper: Box<Operate> = match op {
+					Op::Add => Box::new(Add {
+						b: pop!(),
+						a: pop!(),
+					}),
+					Op::Sub => Box::new(Sub {
+						b: pop!(),
+						a: pop!(),
+					}),
+					Op::Mul => Box::new(Mul {
+						b: pop!(),
+						a: pop!(),
+					}),
+					Op::Div => Box::new(Div {
+						b: pop!(),
+						a: pop!(),
+					}),
+					Op::Pow => Box::new(Pow {
+						b: pop!(),
+						a: pop!(),
+					}),
+				};
+				stack.push(Term::Operation(oper));
+			}
+			Expr::Sub(texprs) => {
+				// Put subexpression on the stack
+				stack.push(postfix_to_term(texprs)?);
+			}
+			Expr::Var(name) => stack.push(Term::Var(name)), // Put var on the stack
+			Expr::Func(name, args) => {
+				// Put function with args converted to terms on the stack
+				stack.push(Term::Function(name, {
+					let mut new = Vec::new();
+					for texprs in args {
+						new.push(postfix_to_term(texprs)?);
+					}
+					new
+				}));
 			}
 		}
-		if stack.len() > 1 {
-			// If there's leftovers on the stack, oops
-			return Err(ParseError::Expected {
-				expected: Expected::Operator,
-			});
-		}
-
-		if let Some(term) = stack.pop() {
-			Ok(term)
-		} else {
-			Err(ParseError::Expected {
-				expected: Expected::Expression,
-			})
-		}
 	}
-
-	/// Convert the Expression into it's pure Term representation
-	pub fn into_term(self) -> Term {
-		self.term
+	if stack.len() > 1 {
+		// If there's leftovers on the stack, oops
+		return Err(ParseError::Expected {
+			expected: Expected::Operator,
+		});
+	}
+	
+	if let Some(term) = stack.pop() {
+		Ok(term)
+	} else {
+		Err(ParseError::Expected {
+			expected: Expected::Expression,
+		})
 	}
 }
 

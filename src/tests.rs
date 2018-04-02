@@ -48,7 +48,7 @@ fn funcs() {
 	context.set_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
 		let mut x = 0.0;
 		for arg in args {
-			x += arg.eval(ctx)?;
+			x += arg.eval_ctx(ctx)?;
 		}
 		Ok(x)
 	});

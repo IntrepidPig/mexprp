@@ -22,7 +22,7 @@ pub(crate) struct Add {
 
 impl Operate for Add {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(self.a.eval(ctx)? + self.b.eval(ctx)?)
+		Ok(self.a.eval_ctx(ctx)? + self.b.eval_ctx(ctx)?)
 	}
 
 	fn to_string(&self) -> String {
@@ -38,7 +38,7 @@ pub(crate) struct Sub {
 
 impl Operate for Sub {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(self.a.eval(ctx)? - self.b.eval(ctx)?)
+		Ok(self.a.eval_ctx(ctx)? - self.b.eval_ctx(ctx)?)
 	}
 
 	fn to_string(&self) -> String {
@@ -54,7 +54,7 @@ pub(crate) struct Mul {
 
 impl Operate for Mul {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(self.a.eval(ctx)? * self.b.eval(ctx)?)
+		Ok(self.a.eval_ctx(ctx)? * self.b.eval_ctx(ctx)?)
 	}
 
 	fn to_string(&self) -> String {
@@ -70,11 +70,11 @@ pub(crate) struct Div {
 
 impl Operate for Div {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		let b = self.b.eval(ctx)?;
+		let b = self.b.eval_ctx(ctx)?;
 		if b == 0.0 {
 			return Err(MathError::DivideByZero);
 		}
-		Ok(self.a.eval(ctx)? / b)
+		Ok(self.a.eval_ctx(ctx)? / b)
 	}
 
 	fn to_string(&self) -> String {
@@ -90,7 +90,7 @@ pub(crate) struct Pow {
 
 impl Operate for Pow {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(self.a.eval(ctx)?.powf(self.b.eval(ctx)?))
+		Ok(self.a.eval_ctx(ctx)?.powf(self.b.eval_ctx(ctx)?))
 	}
 
 	fn to_string(&self) -> String {
