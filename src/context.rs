@@ -37,12 +37,12 @@ impl Context {
 	}
 
 	/// Add a variable definition to the context, replacing any existing one with the same name
-	pub fn add_var<T: Into<Term>>(&mut self, name: &str, val: T) {
+	pub fn set_var<T: Into<Term>>(&mut self, name: &str, val: T) {
 		self.vars.insert(name.to_string(), val.into());
 	}
 
 	/// Add a function definition to the context, replacing any existing one with the same name
-	pub fn add_func<F: Func + 'static>(&mut self, name: &str, func: F) {
+	pub fn set_func<F: Func + 'static>(&mut self, name: &str, func: F) {
 		self.funcs.insert(name.to_string(), Box::new(func));
 	}
 }

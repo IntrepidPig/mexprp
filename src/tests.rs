@@ -32,8 +32,8 @@ fn var_context() {
 	init_logs();
 	let expr = Expression::parse("3 - x ^ (0-3 + 0.22)").unwrap();
 	let mut ctx = Context::new();
-	ctx.add_var("x", 7.0);
-	ctx.add_var("y", 0.22);
+	ctx.set_var("x", 7.0);
+	ctx.set_var("y", 0.22);
 	assert!((expr.eval_ctx(&ctx).unwrap() - 2.995526705934608).abs() < 0.001);
 }
 
@@ -42,7 +42,7 @@ fn expr_context() {
 	init_logs();
 	let expr = Expression::parse("3 * something").unwrap();
 	let mut ctx = Context::new();
-	ctx.add_var(
+	ctx.set_var(
 		"something",
 		Expression::parse("(0-8) ^ 2").unwrap().into_term(),
 	); // TODO impl From<Expression> for Term
@@ -54,7 +54,7 @@ fn funky() {
 	init_logs();
 	let expr = Expression::parse("3(x * -(3 + 1))").unwrap();
 	let mut ctx = Context::new();
-	ctx.add_var("x", 2.0);
+	ctx.set_var("x", 2.0);
 	assert_eq!(expr.eval_ctx(&ctx).unwrap(), -24.0);
 }
 
@@ -71,7 +71,7 @@ fn funcs() {
 	assert!(eq(eval("max(sin(2), 5000000, -4)").unwrap(), 5000000.0));
 	assert!(eq(eval("min(2 / -3 * 3 * 3, 5000000, -4)").unwrap(), -6.0));
 	let mut context = Context::new();
-	context.add_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
+	context.set_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
 		let mut x = 0.0;
 		for arg in args {
 			x += arg.eval(ctx)?;
