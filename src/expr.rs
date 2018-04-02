@@ -195,8 +195,8 @@ impl Expression {
 	/// Converts a Vec of ParenTokens into a Vec of a Vec of Exprs, splitting them by commas and
 	/// then parsing them into Exprs.
 	fn tokens_to_args(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Vec<Expr>>, Error> {
-		let args: Vec<&[ParenToken]> = raw.split(|ptoken| match ptoken {
-			&ParenToken::Comma => true,
+		let args: Vec<&[ParenToken]> = raw.split(|ptoken| match *ptoken {
+			ParenToken::Comma => true,
 			_ => false,
 		}).collect();
 
@@ -204,7 +204,7 @@ impl Expression {
 
 		let mut new = Vec::new();
 		for arg in args {
-			if arg.len() == 0 {
+			if arg.is_empty() {
 				continue; // Ignore empty arguments (occurs when no arguments where passed to the function)
 			}
 			let arg = arg.to_vec();
@@ -214,10 +214,11 @@ impl Expression {
 	}
 
 	/// Insert multiplication operations in between operands that are right next to each other
+	#[cfg_attr(feature = "cargo-clippy", allow(redundant_closure))]
 	fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 		let mut i = 0;
 		
-		if raw.len() == 0 { // Don't panic on empty input
+		if raw.is_empty() { // Don't panic on empty input
 			return Vec::new();
 		}
 		
@@ -257,9 +258,7 @@ impl Expression {
 					Expr::Op(ref op) => {
 						while let Some(top_op) = ops.pop() {
 							// Pop all operators with high enough precedence
-							if top_op.precedence() > op.precedence() {
-								stack.push(Expr::Op(top_op));
-							} else if top_op.precedence() == op.precedence() && top_op.is_left_associative() {
+							if (top_op.precedence() > op.precedence()) || (top_op.precedence() == op.precedence() && top_op.is_left_associative()) {
 								stack.push(Expr::Op(top_op));
 							} else {
 								ops.push(top_op); // Put it back (not high enough precedence)

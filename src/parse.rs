@@ -30,7 +30,7 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 		if c.is_digit(10) {
 			buf = &raw[0..buf.len() + c.len_utf8()];
 		} else if c == '-' {
-			if buf.len() != 0 {
+			if !buf.is_empty() {
 				if buf == "-" {
 					return Some((Token::Num(-1.0), &raw[buf.len()..raw.len()]));
 				} else {
@@ -53,7 +53,7 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 				return None;
 			}
 		} else {
-			if buf.len() == 0 {
+			if buf.is_empty() {
 				return None
 			} else if buf == "-" {
 				return Some((Token::Num(-1.0), &raw[buf.len()..raw.len()]));
@@ -69,20 +69,23 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 		}
 	}
 	
-	if buf.len() == 0 {
-		return None
+	if buf.is_empty() {
+		None
 	} else if buf == "-" {
-		return Some((Token::Num(-1.0), &raw[buf.len()..raw.len()]));
+		Some((Token::Num(-1.0), &raw[buf.len()..raw.len()]))
 	} else {
-		return Some((Token::Num(match buf.parse() {
+		Some((Token::Num(match buf.parse() {
 			Ok(v) => v,
 			Err(_e) => {
 				error!("Failed to parse '{}' as integer", buf);
 				return None;
 			},
-		}), &raw[buf.len()..raw.len()]));
+		}), &raw[buf.len()..raw.len()]))
 	}
 }
+
+/// Function that can be used to retrieve a token
+type TokenFn = fn(&str) -> Option<(Token, &str)>;
 
 /// Get the parentheses at the beginning of a string
 fn next_paren(raw: &str) -> Option<(Token, &str)> {
@@ -120,7 +123,7 @@ fn next_name(raw: &str) -> Option<(Token, &str)> {
 		if c.is_alphabetic() || c == '_' {
 			name = &raw[0..name.len() + c.len_utf8()];
 		} else {
-			if name.len() == 0 {
+			if name.is_empty() {
 				return None
 			} else {
 				return Some((Token::Name(name.to_string()), &raw[name.len()..raw.len()]));
@@ -128,10 +131,10 @@ fn next_name(raw: &str) -> Option<(Token, &str)> {
 		}
 	}
 	
-	if name.len() == 0 {
-		return None
+	if name.is_empty() {
+		None
 	} else {
-		return Some((Token::Name(name.to_string()), &raw[name.len()..raw.len()]));
+		Some((Token::Name(name.to_string()), &raw[name.len()..raw.len()]))
 	}
 }
 
@@ -149,7 +152,7 @@ fn next_comma(raw: &str) -> Option<(Token, &str)> {
 
 /// Return a list of functions to use (in order) to try and parse the next token based on the last token
 /// that was parsed.
-fn get_parse_order(last: Option<&Token>) -> &[fn(&str) -> Option<(Token, &str)>] {
+fn get_parse_order(last: Option<&Token>) -> &[TokenFn] {
 	match last {
 		Some(&Token::Paren(Paren::Open)) => &[next_paren, next_name, next_num],
 		Some(&Token::Paren(Paren::Close)) => &[next_paren, next_comma, next_op, next_name, next_num],
@@ -191,7 +194,7 @@ fn next_token<'a>(raw: &'a str, last: Option<&Token>) -> Result<(Token, &'a str)
 /// Convert a string to a list of tokens
 fn to_tokens(mut raw: &str) -> Result<Vec<Token>, UnexpectedToken> {
 	let mut tokens = Vec::new();
-	while raw.len() > 0 {
+	while !raw.is_empty() {
 		let (tok, new_raw) = next_token(raw, tokens.last())?;
 		tokens.push(tok);
 		raw = new_raw;

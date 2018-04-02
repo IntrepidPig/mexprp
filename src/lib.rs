@@ -24,6 +24,7 @@
 //! ```
 
 #![deny(missing_docs)]
+#![cfg_attr(feature = "cargo-clippy", allow(collapsible_if))]
 
 #[macro_use]
 extern crate failure;

@@ -52,6 +52,12 @@ impl Context {
 	}
 }
 
+impl Default for Context {
+	fn default() -> Self {
+		Self::new()
+	}
+}
+
 pub(in context) mod funcs {
 	use std::cmp::{Ordering, PartialOrd};
 
@@ -83,7 +89,7 @@ pub(in context) mod funcs {
 	pub struct Max;
 	impl Func for Max {
 		fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
-			if !(args.len() > 0) {
+			if args.is_empty() {
 				return Err(MathError::IncorrectArguments);
 			}
 			let mut max = args[0].eval(ctx)?;
@@ -100,7 +106,7 @@ pub(in context) mod funcs {
 	pub struct Min;
 	impl Func for Min {
 		fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
-			if !(args.len() > 0) {
+			if args.is_empty() {
 				return Err(MathError::IncorrectArguments);
 			}
 			let mut max = args[0].eval(ctx)?;
