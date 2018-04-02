@@ -4,5 +4,5 @@ mexprp.iml
 .idea/
 .vscode/
 examples/test.rs
-/target/
+target
 **/*.rs.bk
