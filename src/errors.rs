@@ -15,7 +15,7 @@ pub enum ParseError {
 	Expected {
 		/// The thing that was expected
 		expected: Expected,
-	}
+	},
 }
 
 /// An error that can occur while evaluating an expression

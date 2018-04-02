@@ -101,17 +101,11 @@ impl Expression {
 	/// Parse a string into an expression with the given context
 	pub fn parse_ctx(raw: &str, ctx: &Context) -> Result<Self, ParseError> {
 		let raw = raw.trim();
-		debug!("Parsing '{}'", raw);
 		let paren_tokens = get_tokens(raw)?;
-		debug!("Paren tokens: {:?}", paren_tokens);
 		let exprs = Self::paren_to_exprs(paren_tokens, ctx)?;
-		debug!("Expressions: {:?}", exprs);
 		let exprs = Self::insert_operators(exprs);
-		debug!("Expressions: {:?}", exprs);
 		let postfix = Self::tokenexprs_to_postfix(exprs);
-		debug!("Postfix: {:?}", postfix);
 		let term = Self::postfix_to_term(postfix)?;
-		debug!("Term: {:?}", term);
 
 		Ok(Self {
 			string: raw.to_string(),
@@ -134,13 +128,11 @@ impl Expression {
 	/// if names are functions or variables depending on their context. Second, it splits the arguments
 	/// of a function up by their commas, removing the need for a comma in the token representation.
 	fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, ParseError> {
-		trace!("Converting paren tokens to exprs");
 		let mut mtokens = Vec::new();
 		// Names that have yet to be decided
 		let mut pending_name = None;
 
 		for rt in raw {
-			trace!("Have paren token: {:?}", rt);
 			match rt {
 				ParenToken::Num(num) => {
 					// Names followed by numbers aren't functions
@@ -203,8 +195,6 @@ impl Expression {
 			ParenToken::Comma => true,
 			_ => false,
 		}).collect();
-
-		debug!("Split args into: '{:?}'", args);
 
 		let mut new = Vec::new();
 		for arg in args {
@@ -357,7 +347,7 @@ impl Expression {
 		if stack.len() > 1 {
 			// If there's leftovers on the stack, oops
 			return Err(ParseError::Expected {
-				expected: Expected::Operator
+				expected: Expected::Operator,
 			});
 		}
 
@@ -365,7 +355,7 @@ impl Expression {
 			Ok(term)
 		} else {
 			Err(ParseError::Expected {
-				expected: Expected::Expression
+				expected: Expected::Expression,
 			})
 		}
 	}

@@ -36,7 +36,6 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 						Token::Num(match buf.parse() {
 							Ok(v) => v,
 							Err(_e) => {
-								error!("Failed to parse '{}' as integer", buf);
 								return None;
 							}
 						}),
@@ -63,7 +62,6 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 					Token::Num(match buf.parse() {
 						Ok(v) => v,
 						Err(_e) => {
-							error!("Failed to parse '{}' as integer", buf);
 							return None;
 						}
 					}),
@@ -82,7 +80,6 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 			Token::Num(match buf.parse() {
 				Ok(v) => v,
 				Err(_e) => {
-					error!("Failed to parse '{}' as integer", buf);
 					return None;
 				}
 			}),
@@ -188,7 +185,6 @@ fn next_token<'a>(raw: &'a str, last: Option<&Token>) -> Result<(Token, &'a str)
 
 	for next_func in parseorder {
 		if let Some(new) = (*next_func)(raw) {
-			trace!("Got new token {:?}", new.0);
 			return Ok(new);
 		}
 	}
@@ -211,7 +207,6 @@ fn to_tokens(mut raw: &str) -> Result<Vec<Token>, ParseError> {
 
 /// Convert tokens to a tree based on expression within parentheses
 fn to_paren_tokens(raw: Vec<Token>) -> Result<Vec<ParenToken>, ParseError> {
-	trace!("Converting raw tokens to paren tokens");
 	fn recurse(raw: &[Token]) -> Result<Vec<ParenToken>, ParseError> {
 		let mut parentokens = Vec::new();
 
@@ -274,9 +269,7 @@ fn to_paren_tokens(raw: Vec<Token>) -> Result<Vec<ParenToken>, ParseError> {
 /// Get ParenTokens from a string
 pub(crate) fn get_tokens(raw: &str) -> Result<Vec<ParenToken>, ParseError> {
 	let raw_tokens = to_tokens(raw)?;
-	debug!("Raw tokens: {:?}", raw_tokens);
 	let paren_tokens = to_paren_tokens(raw_tokens)?;
-	debug!("Paren tokens: {:?}", paren_tokens);
 
 	Ok(paren_tokens)
 }

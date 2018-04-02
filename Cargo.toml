@@ -16,7 +16,6 @@ categories = ["parsing"]
 
 [dependencies]
 failure = "0.1"
-log = "0.4"
 
 [dev-dependencies]
 simplelog = "0.5.1"

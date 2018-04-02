@@ -28,8 +28,6 @@
 
 #[macro_use]
 extern crate failure;
-#[macro_use]
-extern crate log;
 
 /// Contains Function trait
 pub mod func;
