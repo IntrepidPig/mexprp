@@ -191,10 +191,9 @@ fn to_tokens(raw: &str) -> Result<Vec<Token>, Error> {
 		let mut new_expected = Expected::none();
 		match tokens.last() {
 			Some(&Token::Paren(Paren::Open)) => {
-				// Any token can come after a open parentheses (except a comma)
+				// Any token can come after a open parentheses (except a comma or operator)
 				new_expected.paren = true;
 				new_expected.name = true;
-				new_expected.op = true;
 				new_expected.literal = true;
 			}
 			Some(&Token::Paren(Paren::Close)) => {
