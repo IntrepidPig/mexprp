@@ -86,11 +86,32 @@ impl Term {
 			}
 		}
 	}
+	
+	/// Express this term as a string
+	pub fn to_string(&self) -> String {
+		match *self {
+			Term::Num(num) => format!("{}", num),
+			Term::Operation(ref op) => format!("{}", op.to_string()),
+			Term::Function(ref name, ref args) => {
+				format!("{}({})", name, {
+					let mut buf = String::new();
+					for (i, arg) in args.iter().enumerate() {
+						buf.push_str(&arg.to_string());
+						if i + 1 < args.len() {
+							buf.push_str(", ");
+						}
+					}
+					buf
+				})
+			},
+			Term::Var(ref name) => format!("{}", name),
+		}
+	}
 }
 
 impl fmt::Display for Term {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-		write!(f, "(term)")
+		write!(f, "{}", self.to_string())
 	}
 }
 
@@ -111,8 +132,10 @@ impl From<Expression> for Term {
 /// to a pure representation of an expression, without anything extra, use Term.
 #[derive(Debug)]
 pub struct Expression {
-	string: String,
-	term: Term,
+	/// The original string passed into this expression
+	pub string: String,
+	/// The term this string has been parsed as
+	pub term: Term,
 }
 
 impl Expression {
