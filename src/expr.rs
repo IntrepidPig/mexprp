@@ -204,6 +204,9 @@ impl Expression {
 
 		let mut new = Vec::new();
 		for arg in args {
+			if arg.len() == 0 {
+				continue; // Ignore empty arguments (occurs when no arguments where passed to the function)
+			}
 			let arg = arg.to_vec();
 			new.push(Self::paren_to_exprs(arg, ctx)?)
 		}
@@ -213,6 +216,11 @@ impl Expression {
 	/// Insert multiplication operations in between operands that are right next to each other
 	fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 		let mut i = 0;
+		
+		if raw.len() == 0 { // Don't panic on empty input
+			return Vec::new();
+		}
+		
 		while i < raw.len() - 1 {
 			if raw[i].is_operand() && raw[i + 1].is_operand() {
 				raw.insert(i + 1, Expr::Op(Op::Mul));
@@ -344,7 +352,12 @@ impl Expression {
 			// If there's leftovers on the stack, oops
 			return Err(Expected::Operator);
 		}
-		Ok(stack.pop().unwrap_or(Term::Num(0.0))) // hmmm....
+		
+		if let Some(term) = stack.pop() {
+			Ok(term)
+		} else {
+			Err(Expected::Expression)
+		}
 	}
 
 	/// Convert the Expression into it's pure Term representation
