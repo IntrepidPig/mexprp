@@ -10,10 +10,7 @@ static ONCE: Once = ONCE_INIT;
 fn init_logs() {
 	ONCE.call_once(|| {
 		use self::simplelog::*;
-
-		CombinedLogger::init(vec![
-			TermLogger::new(LevelFilter::Trace, Config::default()).unwrap(),
-		]).unwrap();
+		TermLogger::init(LevelFilter::Trace, Config::default()).unwrap();
 	});
 }
 
@@ -44,8 +41,8 @@ fn expr_context() {
 	let mut ctx = Context::new();
 	ctx.set_var(
 		"something",
-		Expression::parse("(0-8) ^ 2").unwrap().into_term(),
-	); // TODO impl From<Expression> for Term
+		Expression::parse("(0-8) ^ 2").unwrap(),
+	);
 	assert_eq!(expr.eval_ctx(&ctx).unwrap(), 192.0);
 }
 

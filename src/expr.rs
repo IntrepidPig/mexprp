@@ -78,6 +78,12 @@ impl From<f64> for Term {
 	}
 }
 
+impl From<Expression> for Term {
+	fn from(t: Expression) -> Term {
+		t.into_term()
+	}
+}
+
 /// The main Expression struct. Contains only a Term and a String representing the original equation
 /// requesting to be parsed. Will contain intermediate representations in the future. To just compile
 /// to a pure representation of an expression, without anything extra, use Term.
