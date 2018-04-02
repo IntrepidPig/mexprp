@@ -217,11 +217,12 @@ impl Expression {
 	#[cfg_attr(feature = "cargo-clippy", allow(redundant_closure))]
 	fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 		let mut i = 0;
-		
-		if raw.is_empty() { // Don't panic on empty input
+
+		if raw.is_empty() {
+			// Don't panic on empty input
 			return Vec::new();
 		}
-		
+
 		while i < raw.len() - 1 {
 			if raw[i].is_operand() && raw[i + 1].is_operand() {
 				raw.insert(i + 1, Expr::Op(Op::Mul));
@@ -351,7 +352,7 @@ impl Expression {
 			// If there's leftovers on the stack, oops
 			return Err(Expected::Operator);
 		}
-		
+
 		if let Some(term) = stack.pop() {
 			Ok(term)
 		} else {

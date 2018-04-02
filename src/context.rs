@@ -28,7 +28,7 @@ impl Context {
 			vars: HashMap::new(),
 			funcs: HashMap::new(),
 		};
-		
+
 		ctx.set_var("pi", consts::PI);
 		ctx.set_var("e", consts::E);
 
@@ -37,7 +37,7 @@ impl Context {
 		ctx.funcs.insert("max".to_string(), Box::new(Max));
 		ctx.funcs.insert("min".to_string(), Box::new(Min));
 		ctx.funcs.insert("sqrt".to_string(), Box::new(Sqrt));
-		
+
 		ctx
 	}
 
@@ -119,14 +119,14 @@ pub(in context) mod funcs {
 			Ok(max)
 		}
 	}
-	
+
 	pub struct Sqrt;
 	impl Func for Sqrt {
 		fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			Ok(args[0].eval(ctx)?.sqrt())
 		}
 	}

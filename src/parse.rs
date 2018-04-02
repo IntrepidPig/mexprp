@@ -25,7 +25,7 @@ pub(crate) enum ParenToken {
 fn next_num(raw: &str) -> Option<(Token, &str)> {
 	let mut buf = "";
 	let mut dot = false;
-	
+
 	for c in raw.chars() {
 		if c.is_digit(10) {
 			buf = &raw[0..buf.len() + c.len_utf8()];
@@ -34,13 +34,16 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 				if buf == "-" {
 					return Some((Token::Num(-1.0), &raw[buf.len()..raw.len()]));
 				} else {
-					return Some((Token::Num(match buf.parse() {
-						Ok(v) => v,
-						Err(_e) => {
-							error!("Failed to parse '{}' as integer", buf);
-							return None;
-						},
-					}), &raw[buf.len()..raw.len()]));
+					return Some((
+						Token::Num(match buf.parse() {
+							Ok(v) => v,
+							Err(_e) => {
+								error!("Failed to parse '{}' as integer", buf);
+								return None;
+							}
+						}),
+						&raw[buf.len()..raw.len()],
+					));
 				}
 			} else {
 				buf = &raw[0..buf.len() + c.len_utf8()];
@@ -54,33 +57,39 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 			}
 		} else {
 			if buf.is_empty() {
-				return None
+				return None;
 			} else if buf == "-" {
 				return Some((Token::Num(-1.0), &raw[buf.len()..raw.len()]));
 			} else {
-				return Some((Token::Num(match buf.parse() {
-					Ok(v) => v,
-					Err(_e) => {
-						error!("Failed to parse '{}' as integer", buf);
-						return None;
-					},
-				}), &raw[buf.len()..raw.len()]));
+				return Some((
+					Token::Num(match buf.parse() {
+						Ok(v) => v,
+						Err(_e) => {
+							error!("Failed to parse '{}' as integer", buf);
+							return None;
+						}
+					}),
+					&raw[buf.len()..raw.len()],
+				));
 			}
 		}
 	}
-	
+
 	if buf.is_empty() {
 		None
 	} else if buf == "-" {
 		Some((Token::Num(-1.0), &raw[buf.len()..raw.len()]))
 	} else {
-		Some((Token::Num(match buf.parse() {
-			Ok(v) => v,
-			Err(_e) => {
-				error!("Failed to parse '{}' as integer", buf);
-				return None;
-			},
-		}), &raw[buf.len()..raw.len()]))
+		Some((
+			Token::Num(match buf.parse() {
+				Ok(v) => v,
+				Err(_e) => {
+					error!("Failed to parse '{}' as integer", buf);
+					return None;
+				}
+			}),
+			&raw[buf.len()..raw.len()],
+		))
 	}
 }
 
@@ -124,13 +133,13 @@ fn next_name(raw: &str) -> Option<(Token, &str)> {
 			name = &raw[0..name.len() + c.len_utf8()];
 		} else {
 			if name.is_empty() {
-				return None
+				return None;
 			} else {
 				return Some((Token::Name(name.to_string()), &raw[name.len()..raw.len()]));
 			}
 		}
 	}
-	
+
 	if name.is_empty() {
 		None
 	} else {
@@ -160,7 +169,7 @@ fn get_parse_order(last: Option<&Token>) -> &[TokenFn] {
 		Some(&Token::Num(_)) => &[next_paren, next_comma, next_op, next_name],
 		Some(&Token::Name(_)) => &[next_paren, next_comma, next_op, next_name, next_num],
 		Some(&Token::Comma) => &[next_paren, next_name, next_num],
-		None => &[next_paren, next_name, next_num]
+		None => &[next_paren, next_name, next_num],
 	}
 }
 
@@ -168,26 +177,26 @@ fn get_parse_order(last: Option<&Token>) -> &[TokenFn] {
 /// string or an error
 fn next_token<'a>(raw: &'a str, last: Option<&Token>) -> Result<(Token, &'a str), UnexpectedToken> {
 	let parseorder = get_parse_order(last);
-	
+
 	let mut tok_start = 0;
 	for c in raw.chars() {
 		if c.is_whitespace() {
 			tok_start += c.len_utf8();
 		} else {
-			break
+			break;
 		}
 	}
 	let raw = &raw[tok_start..raw.len()];
-	
+
 	for next_func in parseorder {
 		if let Some(new) = (*next_func)(raw) {
 			trace!("Got new token {:?}", new.0);
-			return Ok(new)
+			return Ok(new);
 		}
 	}
-	
+
 	Err(UnexpectedToken {
-		token: raw.chars().next().unwrap().to_string()
+		token: raw.chars().next().unwrap().to_string(),
 	})
 }
 
