@@ -42,6 +42,9 @@ pub enum MathError {
 	/// A NaN value was used in a way that is not possible
 	#[fail(display = "A NaN value was attempted to be used as an operand")]
 	NaN,
+	/// Another type of Error occurred.
+	#[fail(display = "An unknown error occurred during evaluation")]
+	Other,
 }
 
 /// An error that occurs when evaluating a string
