@@ -52,8 +52,8 @@ fn funcs() {
 		}
 		Ok(x)
 	});
-	let expr = Expression::parse_ctx("sum(4, 5, 6) / 3", &context).unwrap();
-	assert!(eq(expr.eval_ctx(&context).unwrap(), 5.0));
+	let expr = Expression::parse_ctx("sum(4, 5, 6) / 3", context).unwrap();
+	assert!(eq(expr.eval().unwrap(), 5.0));
 }
 
 fn eq(x: f64, y: f64) -> bool {

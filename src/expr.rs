@@ -8,7 +8,8 @@ use errors::*;
 use context::*;
 
 /// The main representation of parsed equations. It is an operand that can contain an operation between
-/// more of itself. This form is necessary for the equation to be evaluated.
+/// more of itself. This form is the only one that can be directly evaluated. Does not include it's own
+/// context.
 #[derive(Debug, Clone)]
 pub enum Term {
 	/// A number
@@ -124,13 +125,13 @@ impl From<f64> for Term {
 
 impl From<Expression> for Term {
 	fn from(t: Expression) -> Term {
-		t.into_term()
+		t.term
 	}
 }
 
-/// The main Expression struct. Contains only a Term and a String representing the original equation
-/// requesting to be parsed. Will contain intermediate representations in the future. To just compile
-/// to a pure representation of an expression, without anything extra, use Term.
+/// The main Expression struct. Contains the string that was originally requested to be parsed, the
+/// context the Expression was parsed with, and the Term the raw form was parsed as. For just the
+/// parsed version of the expression, use the Term enum.
 #[derive(Debug)]
 pub struct Expression {
 	/// The original string passed into this expression
@@ -169,16 +170,11 @@ impl Expression {
 	pub fn eval_ctx(&self, ctx: &Context) -> Calculation {
 		self.term.eval_ctx(ctx)
 	}
-
-	/// Convert the Expression into it's pure Term representation
-	pub fn into_term(self) -> Term {
-		self.term
-	}
 }
 
 /// Convert ParenTokens to exprs. This function accomplishes two things at once. First, it decides
-	/// if names are functions or variables depending on their context. Second, it splits the arguments
-	/// of a function up by their commas, removing the need for a comma in the token representation.
+/// if names are functions or variables depending on their context. Second, it splits the arguments
+/// of a function up by their commas, removing the need for a comma in the token representation.
 fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, ParseError> {
 	let mut mtokens = Vec::new();
 	// Names that have yet to be decided

@@ -32,9 +32,9 @@ fn main() {
 	let raw = "2 * sum(x, 7, 400)";
 	// The expression needs to be parsed with the context in order do decide if some names are functions
 	// or variables.
-	let expr = Expression::parse_ctx(raw, &context).unwrap();
+	let expr = Expression::parse_ctx(raw, context).unwrap();
 	// The expression also needs to be evaluated with a context. This context can be different than the
 	// one it was parsed with, but if it is missing something that is necessary for evaluation the
 	// evaluation will fail.
-	println!("{} = {}", raw, expr.eval_ctx(&context).unwrap())
+	println!("{} = {}", raw, expr.eval().unwrap())
 }

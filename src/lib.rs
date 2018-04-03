@@ -2,19 +2,24 @@
 //! A math expression parsing and evaluating library
 //!
 //! ## Usage
-//! The recommended way to use it is with the Expression struct, but it can also be used for one-off
-//! usages with the `eval()` and `eval_ctx()` functions in the root. Expressions can be parsed without
-//! a context and will use the default one, but in order to use custom constants and functions, Expressions
-//! need to be parsed AND evaluated with the context you wish to use.
+//! There are three different ways to parse and evaluate an equation.
 //!
-//!  ### Evaluating an expression
+//!  #### With eval()
+//! This function parses and evaluates a string all at once with the default context. There's also
+//! an `eval_ctx()` function which takes a reference to a `Context` as well that will be used instead of
+//! the default `Context`.
+//!
 //! ```rust
 //! # let res =
 //! mexprp::eval("10 / (2 + 3)"); // Ok(2.0)
 //! # assert_eq!(res.unwrap(), 2.0);
 //! ```
 //!
-//! ### Compiling an expression
+//! #### With Expression
+//! `Expression::parse()` parses a string into a tree representation (a `Term`). It can also be parsed
+//! with a context with `parse_ctx`, and it will store that context within it for future evaluations.
+//! It can also be evaluated with a reference to any other context with `eval_ctx`. It's important to
+//! ensure that the custom context contains any definitions the `Expression` depends on.
 //!
 //! ```rust
 //! # use mexprp::Expression;
@@ -22,6 +27,23 @@
 //! let res = expr.eval(); // Ok(9.0)
 //! # assert_eq!(res.unwrap(), 9.0);
 //! ```
+//!
+//! #### With Term
+//! A `Term` is an `Expression`, but without any extra overhead.
+//!
+//! ```rust
+//! # use mexprp::Term;
+//! let term = Term::parse("10 ^ -3").unwrap();
+//! let res = term.eval(); // Ok(0.001)
+//! # assert_eq!(res.unwrap(), 0.001);
+//! ```
+//!
+//! ### Using Contexts
+//! You can evaluate expressions with custom variable and function definition's by defining a context.
+//! When defining custom functions, it's important to remember to parse the expression with the custom
+//! context, or else the parser will recognize your functions as variables instead. `Expression`s will
+//! store the context you parse them with, but you have to evaluate `Term`s with a reference to a context
+//! using `Term::eval_ctx`. For more info see the [`context`](context) module.
 
 #![deny(missing_docs)]
 #![cfg_attr(feature = "cargo-clippy", allow(collapsible_if))]
