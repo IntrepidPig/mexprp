@@ -110,8 +110,8 @@ fn next_op(raw: &str) -> Option<(Token, &str)> {
 		match c {
 			'+' => Some((Token::Op(Op::Add), &raw[c.len_utf8()..raw.len()])),
 			'-' => Some((Token::Op(Op::Sub), &raw[c.len_utf8()..raw.len()])),
-			'*' => Some((Token::Op(Op::Mul), &raw[c.len_utf8()..raw.len()])),
-			'/' => Some((Token::Op(Op::Div), &raw[c.len_utf8()..raw.len()])),
+			'*' | '×' => Some((Token::Op(Op::Mul), &raw[c.len_utf8()..raw.len()])),
+			'/' | '÷' => Some((Token::Op(Op::Div), &raw[c.len_utf8()..raw.len()])),
 			'^' => Some((Token::Op(Op::Pow), &raw[c.len_utf8()..raw.len()])),
 			_ => None,
 		}

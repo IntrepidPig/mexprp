@@ -58,7 +58,7 @@ impl Operate for Mul {
 	}
 
 	fn to_string(&self) -> String {
-		format!("({} * {})", self.a, self.b)
+		format!("({} × {})", self.a, self.b)
 	}
 }
 
@@ -78,7 +78,7 @@ impl Operate for Div {
 	}
 
 	fn to_string(&self) -> String {
-		format!("({} / {})", self.a, self.b)
+		format!("({} ÷ {})", self.a, self.b)
 	}
 }
 
