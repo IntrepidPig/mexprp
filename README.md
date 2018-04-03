@@ -7,7 +7,7 @@
 
 A math expression parsing and evaluation library for Rust with the goal of being simple to use, yet powerful.
 
-[API docs here](https://crates.io/crates/mexprp). Also see the `examples/` directory.
+[API docs here](https://docs.rs/mexprp). Also see the `examples/` directory.
 
 ### Motivation 
 
