@@ -1,4 +1,5 @@
 use std::fmt;
+use std::rc::Rc;
 
 use op::*;
 use opers::*;
@@ -8,12 +9,12 @@ use context::*;
 
 /// The main representation of parsed equations. It is an operand that can contain an operation between
 /// more of itself. This form is necessary for the equation to be evaluated.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Term {
 	/// A number
 	Num(f64),
 	/// An operation
-	Operation(Box<Operate>),
+	Operation(Rc<Operate>),
 	/// A function with the given arguments
 	Function(String, Vec<Term>),
 	/// A variable
@@ -134,6 +135,8 @@ impl From<Expression> for Term {
 pub struct Expression {
 	/// The original string passed into this expression
 	pub string: String,
+	/// Context the expression was parsed with
+	pub ctx: Context,
 	/// The term this string has been parsed as
 	pub term: Term,
 }
@@ -142,24 +145,24 @@ impl Expression {
 	/// Parse a string into an expression
 	pub fn parse(raw: &str) -> Result<Self, ParseError> {
 		let ctx = Context::new();
-		Self::parse_ctx(raw, &ctx)
+		Self::parse_ctx(raw, ctx)
 	}
 
 	/// Parse a string into an expression with the given context
-	pub fn parse_ctx(raw: &str, ctx: &Context) -> Result<Self, ParseError> {
+	pub fn parse_ctx(raw: &str, ctx: Context) -> Result<Self, ParseError> {
 		let raw = raw.trim();
-		let term = Term::parse_ctx(raw, ctx)?;
+		let term = Term::parse_ctx(raw, &ctx)?;
 
 		Ok(Self {
 			string: raw.to_string(),
+			ctx,
 			term,
 		})
 	}
 
 	/// Evaluate the expression
 	pub fn eval(&self) -> Calculation {
-		let ctx = Context::new();
-		self.eval_ctx(&ctx)
+		self.eval_ctx(&self.ctx)
 	}
 
 	/// Evaluate the expression with the given context
@@ -352,24 +355,24 @@ fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
 						}
 					}
 				
-				let oper: Box<Operate> = match op {
-					Op::Add => Box::new(Add {
+				let oper: Rc<Operate> = match op {
+					Op::Add => Rc::new(Add {
 						b: pop!(),
 						a: pop!(),
 					}),
-					Op::Sub => Box::new(Sub {
+					Op::Sub => Rc::new(Sub {
 						b: pop!(),
 						a: pop!(),
 					}),
-					Op::Mul => Box::new(Mul {
+					Op::Mul => Rc::new(Mul {
 						b: pop!(),
 						a: pop!(),
 					}),
-					Op::Div => Box::new(Div {
+					Op::Div => Rc::new(Div {
 						b: pop!(),
 						a: pop!(),
 					}),
-					Op::Pow => Box::new(Pow {
+					Op::Pow => Rc::new(Pow {
 						b: pop!(),
 						a: pop!(),
 					}),

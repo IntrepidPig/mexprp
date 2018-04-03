@@ -1,5 +1,7 @@
 use std::collections::HashMap;
 use std::f64::consts;
+use std::rc::Rc;
+use std::fmt;
 
 use expr::Term;
 use func::Func;
@@ -12,11 +14,12 @@ use func::Func;
 /// truly special about it (for now at least) is the defualt value when calling new(). This Context contains
 /// all basic functions and values expected to be included such as sin(), cos(), sqrt(), pi, etc. This
 /// is the Context all expressions are parsed and evaluated with if no other one is present.
+#[derive(Clone)]
 pub struct Context {
 	/// HashMap of variables
 	pub vars: HashMap<String, Term>,
 	/// HashMap of functions
-	pub funcs: HashMap<String, Box<Func>>,
+	pub funcs: HashMap<String, Rc<Func>>,
 }
 
 impl Context {
@@ -32,11 +35,11 @@ impl Context {
 		ctx.set_var("pi", consts::PI);
 		ctx.set_var("e", consts::E);
 
-		ctx.funcs.insert("sin".to_string(), Box::new(Sin));
-		ctx.funcs.insert("cos".to_string(), Box::new(Cos));
-		ctx.funcs.insert("max".to_string(), Box::new(Max));
-		ctx.funcs.insert("min".to_string(), Box::new(Min));
-		ctx.funcs.insert("sqrt".to_string(), Box::new(Sqrt));
+		ctx.funcs.insert("sin".to_string(), Rc::new(Sin));
+		ctx.funcs.insert("cos".to_string(), Rc::new(Cos));
+		ctx.funcs.insert("max".to_string(), Rc::new(Max));
+		ctx.funcs.insert("min".to_string(), Rc::new(Min));
+		ctx.funcs.insert("sqrt".to_string(),Rc::new(Sqrt));
 
 		ctx
 	}
@@ -48,13 +51,28 @@ impl Context {
 
 	/// Add a function definition to the context, replacing any existing one with the same name
 	pub fn set_func<F: Func + 'static>(&mut self, name: &str, func: F) {
-		self.funcs.insert(name.to_string(), Box::new(func));
+		self.funcs.insert(name.to_string(), Rc::new(func));
 	}
 }
 
 impl Default for Context {
 	fn default() -> Self {
 		Self::new()
+	}
+}
+
+impl fmt::Debug for Context {
+	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+		write!(f, "Context {{ vars: {:?}, funcs: {{{}}} }}", self.vars, {
+			let mut output = String::new();
+			for (i, key) in self.funcs.keys().enumerate() {
+				output.push_str(key);
+				if i + 1 < self.funcs.len() {
+					output.push_str(", ");
+				}
+			}
+			output
+		})
 	}
 }
 
