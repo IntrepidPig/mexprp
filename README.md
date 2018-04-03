@@ -11,7 +11,7 @@ A math expression parsing and evaluation library for Rust with the goal of being
 
 ### Motivation 
 
-The main reason I wrote MEXPRP was for a 3D equation grapher I've been working on. Now that's not near done, so it's being saved for a future post. Of course, I could've used an existing Rust expression parser, but the only other one was a `0.1.0` library that had what I considered I somewhat strange API. Also, for some reason I've been kind of interested in keeping the dependencies down for the 3D equation grapher I was talking about. Anyway, now there's [at least two](https://xkcd.com/927/) `0.1.0` Rust math expression libraries with API's that can be considered strange.
+The main reason I wrote MEXPRP was for a 3D equation grapher I've been working on ([vgraph](https://github.com/intrepidpig/vgraph)). Of course, I could've used an existing Rust expression parser, but the only other one was a `0.1.0` library that had what I considered I somewhat strange API. Also, for some reason I've been kind of interested in keeping the dependencies down for the 3D equation grapher I was talking about. Anyway, now there's [at least two](https://xkcd.com/927/) `0.x` Rust math expression libraries with API's that can be considered strange.
 
 ### Features
 
@@ -20,7 +20,9 @@ The main reason I wrote MEXPRP was for a 3D equation grapher I've been working o
 - Custom function contexts
 - Builtin constants and functions
 - Implicit multiplication
-- Low dependencies
+- Low dependencies (just failure)
+- Easy to use
+- UTF-8 ready
 
 ### Usage
 
