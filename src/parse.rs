@@ -27,24 +27,6 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 	for c in raw.chars() {
 		if c.is_digit(10) {
 			buf = &raw[0..buf.len() + c.len_utf8()];
-		} else if c == '-' {
-			if !buf.is_empty() {
-				if buf == "-" {
-					return Some((Token::Num(-1.0), &raw[buf.len()..raw.len()]));
-				} else {
-					return Some((
-						Token::Num(match buf.parse() {
-							Ok(v) => v,
-							Err(_e) => {
-								return None;
-							}
-						}),
-						&raw[buf.len()..raw.len()],
-					));
-				}
-			} else {
-				buf = &raw[0..buf.len() + c.len_utf8()];
-			}
 		} else if c == '.' {
 			if !dot {
 				dot = true;
@@ -55,8 +37,6 @@ fn next_num(raw: &str) -> Option<(Token, &str)> {
 		} else {
 			if buf.is_empty() {
 				return None;
-			} else if buf == "-" {
-				return Some((Token::Num(-1.0), &raw[buf.len()..raw.len()]));
 			} else {
 				return Some((
 					Token::Num(match buf.parse() {
@@ -104,15 +84,41 @@ fn next_paren(raw: &str) -> Option<(Token, &str)> {
 	}
 }
 
-/// Get the operator at the beginning of a string
-fn next_op(raw: &str) -> Option<(Token, &str)> {
+/// Get an infix operator at the beginning of a string
+fn next_in_op(raw: &str) -> Option<(Token, &str)> {
 	if let Some(c) = raw.chars().next() {
 		match c {
-			'+' => Some((Token::Op(Op::Add), &raw[c.len_utf8()..raw.len()])),
-			'-' => Some((Token::Op(Op::Sub), &raw[c.len_utf8()..raw.len()])),
-			'*' | '×' => Some((Token::Op(Op::Mul), &raw[c.len_utf8()..raw.len()])),
-			'/' | '÷' => Some((Token::Op(Op::Div), &raw[c.len_utf8()..raw.len()])),
-			'^' => Some((Token::Op(Op::Pow), &raw[c.len_utf8()..raw.len()])),
+			'+' => Some((Token::Op(Op::In(In::Add)), &raw[c.len_utf8()..raw.len()])),
+			'-' => Some((Token::Op(Op::In(In::Sub)), &raw[c.len_utf8()..raw.len()])),
+			'*' | '×' => Some((Token::Op(Op::In(In::Mul)), &raw[c.len_utf8()..raw.len()])),
+			'/' | '÷' => Some((Token::Op(Op::In(In::Div)), &raw[c.len_utf8()..raw.len()])),
+			'^' => Some((Token::Op(Op::In(In::Pow)), &raw[c.len_utf8()..raw.len()])),
+			_ => None,
+		}
+	} else {
+		None
+	}
+}
+
+/// Get a prefix operator at the beginning of a string
+fn next_pre_op(raw: &str) -> Option<(Token, &str)> {
+	if let Some(c) = raw.chars().next() {
+		match c {
+			'-' => Some((Token::Op(Op::Pre(Pre::Neg)), &raw[c.len_utf8()..raw.len()])),
+			'+' => Some((Token::Op(Op::Pre(Pre::Pos)), &raw[c.len_utf8()..raw.len()])),
+			_ => None,
+		}
+	} else {
+		None
+	}
+}
+
+/// Get a postfix operator at the beginning of a string
+fn next_post_op(raw: &str) -> Option<(Token, &str)> {
+	if let Some(c) = raw.chars().next() {
+		match c {
+			'!' => Some((Token::Op(Op::Post(Post::Fact)), &raw[c.len_utf8()..raw.len()])),
+			'%' => Some((Token::Op(Op::Post(Post::Percent)), &raw[c.len_utf8()..raw.len()])),
 			_ => None,
 		}
 	} else {
@@ -158,13 +164,15 @@ fn next_comma(raw: &str) -> Option<(Token, &str)> {
 /// that was parsed.
 fn get_parse_order(last: Option<&Token>) -> &[TokenFn] {
 	match last {
-		Some(&Token::Paren(Paren::Open)) => &[next_paren, next_name, next_num],
-		Some(&Token::Paren(Paren::Close)) => &[next_paren, next_comma, next_op, next_name, next_num],
-		Some(&Token::Op(_)) => &[next_paren, next_name, next_num],
-		Some(&Token::Num(_)) => &[next_paren, next_comma, next_op, next_name],
-		Some(&Token::Name(_)) => &[next_paren, next_comma, next_op, next_name, next_num],
-		Some(&Token::Comma) => &[next_paren, next_name, next_num],
-		None => &[next_paren, next_name, next_num],
+		Some(&Token::Paren(Paren::Open)) => &[next_paren, next_name, next_num, next_pre_op],
+		Some(&Token::Paren(Paren::Close)) => &[next_paren, next_comma, next_in_op, next_post_op, next_name, next_num],
+		Some(&Token::Op(Op::In(_))) => &[next_paren, next_name, next_num, next_pre_op],
+		Some(&Token::Op(Op::Pre(_))) => &[next_paren, next_name, next_num, next_pre_op],
+		Some(&Token::Op(Op::Post(_))) => &[next_paren, next_comma, next_name, next_in_op, next_post_op, next_num],
+		Some(&Token::Num(_)) => &[next_paren, next_comma, next_in_op, next_post_op, next_name],
+		Some(&Token::Name(_)) => &[next_paren, next_comma, next_in_op, next_name, next_post_op, next_num],
+		Some(&Token::Comma) => &[next_paren, next_name, next_num, next_pre_op],
+		None => &[next_paren, next_name, next_num, next_pre_op],
 	}
 }
 

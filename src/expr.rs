@@ -267,8 +267,16 @@ fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 	
 	while i < raw.len() - 1 {
 		if raw[i].is_operand() && raw[i + 1].is_operand() {
-			raw.insert(i + 1, Expr::Op(Op::Mul));
+			raw.insert(i + 1, Expr::Op(Op::In(In::Mul)));
 		} else {
+			match raw[i] {
+				Expr::Op(Op::Post(_)) => {
+					if raw[i + 1].is_operand() {
+						raw.insert(i + 1, Expr::Op(Op::In(In::Mul)));
+					}
+				},
+				_ => {},
+			}
 			i += 1;
 		}
 	}
@@ -300,8 +308,9 @@ fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
 				Expr::Num(num) => stack.push(Expr::Num(num)), // Push number onto the stack
 				Expr::Op(ref op) => {
 					while let Some(top_op) = ops.pop() {
+						
 						// Pop all operators with high enough precedence
-						if (top_op.precedence() > op.precedence()) || (top_op.precedence() == op.precedence() && top_op.is_left_associative()) {
+						if op.should_shunt(&top_op.clone()) {
 							stack.push(Expr::Op(top_op));
 						} else {
 							ops.push(top_op); // Put it back (not high enough precedence)
@@ -322,6 +331,7 @@ fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
 				Expr::Sub(ref texprs) => stack.push(Expr::Sub(recurse(texprs))), // Push the subexpression onto the stack
 			}
 		}
+		
 		while let Some(op) = ops.pop() {
 			// Push leftover operators onto stack
 			stack.push(Expr::Op(op));
@@ -352,26 +362,44 @@ fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
 					}
 				
 				let oper: Rc<Operate> = match op {
-					Op::Add => Rc::new(Add {
-						b: pop!(),
-						a: pop!(),
-					}),
-					Op::Sub => Rc::new(Sub {
-						b: pop!(),
-						a: pop!(),
-					}),
-					Op::Mul => Rc::new(Mul {
-						b: pop!(),
-						a: pop!(),
-					}),
-					Op::Div => Rc::new(Div {
-						b: pop!(),
-						a: pop!(),
-					}),
-					Op::Pow => Rc::new(Pow {
-						b: pop!(),
-						a: pop!(),
-					}),
+					Op::In(op) => match op {
+						In::Add => Rc::new(Add {
+							b: pop!(),
+							a: pop!(),
+						}),
+						In::Sub => Rc::new(Sub {
+							b: pop!(),
+							a: pop!(),
+						}),
+						In::Mul => Rc::new(Mul {
+							b: pop!(),
+							a: pop!(),
+						}),
+						In::Div => Rc::new(Div {
+							b: pop!(),
+							a: pop!(),
+						}),
+						In::Pow => Rc::new(Pow {
+							b: pop!(),
+							a: pop!(),
+						}),
+					},
+					Op::Pre(op) => match op {
+						Pre::Neg => Rc::new(Neg {
+							a: pop!(),
+						}),
+						Pre::Pos => Rc::new(Pos {
+							a: pop!(),
+						}),
+					},
+					Op::Post(op) => match op {
+						Post::Fact => Rc::new(Fact {
+							a: pop!(),
+						}),
+						Post::Percent => Rc::new(Percent {
+							a: pop!(),
+						}),
+					}
 				};
 				stack.push(Term::Operation(oper));
 			}
