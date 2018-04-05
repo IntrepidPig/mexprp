@@ -58,6 +58,13 @@ impl<N: Num> Answer<N> {
 			},
 		}
 	}
+	
+	pub fn unwrap_single(self) -> N {
+		match self {
+			Answer::Single(n) => n,
+			Answer::Multiple(_) => panic!("Attempted to unwrap multiple answers as one")
+		}
+	}
 }
 
 impl<N: Num> fmt::Display for Answer<N> {

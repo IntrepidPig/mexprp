@@ -1,59 +1,61 @@
-use {eval, Calculation, Context, Expression, Term};
+use {eval, Calculation, Context, Expression, Term, Answer, Num};
+use num::{ComplexRugRat, ComplexFloat};
 
 #[test]
 fn basic() {
 	let raw = "(3 * (17.8 - 4) ^ 2) / 7";
 	println!("\nParsing {}", raw);
-	let expr = Expression::parse(raw).unwrap();
+	let expr: Expression<f64> = Expression::parse(raw).unwrap();
 	println!("\nDone parsing {}", raw);
-	assert!((expr.eval().unwrap() - 81.61714285714285).abs() < 0.001);
+	assert!((expr.eval().unwrap().unwrap_single() - 81.61714285714285).abs() < 0.001);
 }
 
 #[test]
 fn var_context() {
-	let expr = Expression::parse("3 - x ^ (0-3 + 0.22)").unwrap();
+	let expr: Expression<f64> = Expression::parse("3 - x ^ (0-3 + 0.22)").unwrap();
 	let mut ctx = Context::new();
 	ctx.set_var("x", 7.0);
 	ctx.set_var("y", 0.22);
-	assert!((expr.eval_ctx(&ctx).unwrap() - 2.995526705934608).abs() < 0.001);
+	assert!((expr.eval_ctx(&ctx).unwrap().unwrap_single() - 2.995526705934608).abs() < 0.001);
 }
 
 #[test]
 fn expr_context() {
-	let expr = Expression::parse("3 * something").unwrap();
+	let expr: Expression<ComplexFloat> = Expression::parse("3 * something").unwrap();
 	let mut ctx = Context::new();
 	ctx.set_var("something", Expression::parse("(0-8) ^ 2").unwrap());
-	assert_eq!(expr.eval_ctx(&ctx).unwrap(), 192.0);
+	assert_eq!(expr.eval_ctx(&ctx).unwrap().unwrap_single().r, 192.0);
 }
 
 #[test]
 fn funky() {
-	let expr = Expression::parse("3(x * -(3 + 1))").unwrap();
+	let expr: Expression<ComplexFloat> = Expression::parse("3(x * -(3 + 1))").unwrap();
 	let mut ctx = Context::new();
-	ctx.set_var("x", 2.0);
-	assert_eq!(expr.eval_ctx(&ctx).unwrap(), -24.0);
+	ctx.set_var("x", ComplexFloat::from(2.0));
+	assert_eq!(expr.eval_ctx(&ctx).unwrap().unwrap_single().r, -24.0);
 }
 
 #[test]
 fn sin() {
-	let expr = Expression::parse("2 + sin(3.1415926)").unwrap();
-	assert!((expr.eval().unwrap() - 2.0) < 0.005);
+	let expr: Expression<ComplexFloat> = Expression::parse("2 + sin(3.1415926)").unwrap();
+	assert!((expr.eval().unwrap().unwrap_single().r - 2.0) < 0.005);
 }
 
 #[test]
 fn funcs() {
-	assert!(eq(eval("max(sin(2), 5000000, -4)").unwrap(), 5000000.0));
-	assert!(eq(eval("min(2 / -3 * 3 * 3, 5000000, -4)").unwrap(), -6.0));
-	let mut context = Context::new();
-	context.set_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
-		let mut x = 0.0;
+	assert!(eq(eval("max(sin(2), 5000000, -4)").unwrap().unwrap_single(), 5000000.0));
+	assert!(eq(eval("min(2 / -3 * 3 * 3, 5000000, -4)").unwrap().unwrap_single(), -6.0));
+	let mut context: Context<f64> = Context::new();
+	context.set_func("sum", |args: &[Term<f64>], ctx: &Context<f64>| -> Calculation<f64> {
+		let mut x = Answer::Single(0.0);
 		for arg in args {
-			x += arg.eval_ctx(ctx)?;
+			let a = arg.eval_ctx(ctx)?;
+			x = x.op(&a, |a, b| Num::add(a, b))?;
 		}
 		Ok(x)
 	});
-	let expr = Expression::parse_ctx("sum(4, 5, 6) / 3", context).unwrap();
-	assert!(eq(expr.eval().unwrap(), 5.0));
+	let expr: Expression<f64> = Expression::parse_ctx("sum(4, 5, 6) / 3", context).unwrap();
+	assert!(eq(expr.eval().unwrap().unwrap_single(), 5.0));
 }
 
 fn eq(x: f64, y: f64) -> bool {

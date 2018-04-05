@@ -16,7 +16,7 @@ fn main() {
 		io::stdin().read_line(&mut buf).unwrap();
 
 		// Parse the expression (with the default context)
-		let expr = match Expression::parse(&buf) {
+		let expr: Expression<f64> = match Expression::parse(&buf) {
 			Ok(expr) => expr,
 			Err(e) => {
 				println!("Failed to parse expression: {}", e);
