@@ -3,7 +3,7 @@
 
 extern crate mexprp;
 
-use mexprp::{Calculation, Context, Expression, Term, MathError};
+use mexprp::{Calculation, Context, Expression, MathError, Term};
 
 fn main() {
 	// A context holds data that can be used in an expression

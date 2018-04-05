@@ -26,7 +26,6 @@ pub(crate) enum Post {
 	Percent,
 }
 
-
 impl Op {
 	pub fn precedence(&self) -> i32 {
 		use self::In::*;
@@ -44,7 +43,7 @@ impl Op {
 			Op::Post(ref op) => match *op {
 				Fact => 4,
 				Percent => 4,
-			}
+			},
 		}
 	}
 
@@ -63,7 +62,7 @@ impl Op {
 			Op::Post(ref op) => match *op {
 				Fact => true,
 				Percent => true,
-			}
+			},
 		}
 	}
 
@@ -86,21 +85,17 @@ impl Op {
 			Op::Post(ref op) => match *op {
 				Fact => "!",
 				Percent => "%",
-			}
+			},
 		})
 	}
-	
+
 	/// True if the operator should be evaluated before this one
 	pub fn should_shunt(&self, other: &Op) -> bool {
-		//match *self {
-		//	Op::In(_) => {
-				if (other.precedence() > self.precedence()) || (other.precedence() == self.precedence() && other.is_left_associative()) {
-					true
-				} else {
-					false
-				}
-		//	}
-		//}
+		if (other.precedence() > self.precedence()) || (other.precedence() == self.precedence() && other.is_left_associative()) {
+			true
+		} else {
+			false
+		}
 	}
 }
 

@@ -87,7 +87,7 @@ impl Context {
 		ctx.funcs.insert("cos".to_string(), Rc::new(Cos));
 		ctx.funcs.insert("max".to_string(), Rc::new(Max));
 		ctx.funcs.insert("min".to_string(), Rc::new(Min));
-		ctx.funcs.insert("sqrt".to_string(),Rc::new(Sqrt));
+		ctx.funcs.insert("sqrt".to_string(), Rc::new(Sqrt));
 
 		ctx
 	}

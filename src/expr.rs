@@ -45,7 +45,7 @@ impl Term {
 		let ctx = Context::new();
 		Self::parse_ctx(raw, &ctx)
 	}
-	
+
 	/// Parse a string into an expression with the given context
 	pub fn parse_ctx(raw: &str, ctx: &Context) -> Result<Self, ParseError> {
 		let raw = raw.trim();
@@ -54,16 +54,16 @@ impl Term {
 		let exprs = insert_operators(exprs);
 		let postfix = tokenexprs_to_postfix(exprs);
 		let term = postfix_to_term(postfix)?;
-		
+
 		Ok(term)
 	}
-	
+
 	/// Evaluate the term with the default context
 	pub fn eval(&self) -> Calculation {
 		let ctx = Context::new();
 		self.eval_ctx(&ctx)
 	}
-	
+
 	/// Evaluate the term with the given context
 	pub fn eval_ctx(&self, ctx: &Context) -> Calculation {
 		// Evaluate each possible term type
@@ -88,24 +88,22 @@ impl Term {
 			}
 		}
 	}
-	
+
 	/// Express this term as a string
 	pub fn to_string(&self) -> String {
 		match *self {
 			Term::Num(num) => format!("{}", num),
 			Term::Operation(ref op) => format!("{}", op.to_string()),
-			Term::Function(ref name, ref args) => {
-				format!("{}({})", name, {
-					let mut buf = String::new();
-					for (i, arg) in args.iter().enumerate() {
-						buf.push_str(&arg.to_string());
-						if i + 1 < args.len() {
-							buf.push_str(", ");
-						}
+			Term::Function(ref name, ref args) => format!("{}({})", name, {
+				let mut buf = String::new();
+				for (i, arg) in args.iter().enumerate() {
+					buf.push_str(&arg.to_string());
+					if i + 1 < args.len() {
+						buf.push_str(", ");
 					}
-					buf
-				})
-			},
+				}
+				buf
+			}),
 			Term::Var(ref name) => format!("{}", name),
 		}
 	}
@@ -179,7 +177,7 @@ fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, Pars
 	let mut mtokens = Vec::new();
 	// Names that have yet to be decided
 	let mut pending_name = None;
-	
+
 	for rt in raw {
 		match rt {
 			ParenToken::Num(num) => {
@@ -227,12 +225,12 @@ fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, Pars
 			}
 		}
 	}
-	
+
 	if let Some(pending_name) = pending_name.take() {
 		// Push a leftover pending name
 		mtokens.push(Expr::Var(pending_name));
 	}
-	
+
 	Ok(mtokens)
 }
 
@@ -243,7 +241,7 @@ fn tokens_to_args(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Vec<Expr>>,
 		ParenToken::Comma => true,
 		_ => false,
 	}).collect();
-	
+
 	let mut new = Vec::new();
 	for arg in args {
 		if arg.is_empty() {
@@ -259,12 +257,12 @@ fn tokens_to_args(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Vec<Expr>>,
 #[cfg_attr(feature = "cargo-clippy", allow(redundant_closure))]
 fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 	let mut i = 0;
-	
+
 	if raw.is_empty() {
 		// Don't panic on empty input
 		return Vec::new();
 	}
-	
+
 	while i < raw.len() - 1 {
 		if raw[i].is_operand() && raw[i + 1].is_operand() {
 			raw.insert(i + 1, Expr::Op(Op::In(In::Mul)));
@@ -274,13 +272,13 @@ fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 					if raw[i + 1].is_operand() {
 						raw.insert(i + 1, Expr::Op(Op::In(In::Mul)));
 					}
-				},
-				_ => {},
+				}
+				_ => {}
 			}
 			i += 1;
 		}
 	}
-	
+
 	let mut new = Vec::new();
 	for texpr in raw {
 		match texpr {
@@ -294,7 +292,7 @@ fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 			t => new.push(t),
 		}
 	}
-	
+
 	new
 }
 
@@ -308,7 +306,6 @@ fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
 				Expr::Num(num) => stack.push(Expr::Num(num)), // Push number onto the stack
 				Expr::Op(ref op) => {
 					while let Some(top_op) = ops.pop() {
-						
 						// Pop all operators with high enough precedence
 						if op.should_shunt(&top_op.clone()) {
 							stack.push(Expr::Op(top_op));
@@ -331,14 +328,14 @@ fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
 				Expr::Sub(ref texprs) => stack.push(Expr::Sub(recurse(texprs))), // Push the subexpression onto the stack
 			}
 		}
-		
+
 		while let Some(op) = ops.pop() {
 			// Push leftover operators onto stack
 			stack.push(Expr::Op(op));
 		}
 		stack
 	}
-	
+
 	recurse(&raw)
 }
 
@@ -360,7 +357,7 @@ fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
 							}
 						}
 					}
-				
+
 				let oper: Rc<Operate> = match op {
 					Op::In(op) => match op {
 						In::Add => Rc::new(Add {
@@ -385,21 +382,13 @@ fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
 						}),
 					},
 					Op::Pre(op) => match op {
-						Pre::Neg => Rc::new(Neg {
-							a: pop!(),
-						}),
-						Pre::Pos => Rc::new(Pos {
-							a: pop!(),
-						}),
+						Pre::Neg => Rc::new(Neg { a: pop!() }),
+						Pre::Pos => Rc::new(Pos { a: pop!() }),
 					},
 					Op::Post(op) => match op {
-						Post::Fact => Rc::new(Fact {
-							a: pop!(),
-						}),
-						Post::Percent => Rc::new(Percent {
-							a: pop!(),
-						}),
-					}
+						Post::Fact => Rc::new(Fact { a: pop!() }),
+						Post::Percent => Rc::new(Percent { a: pop!() }),
+					},
 				};
 				stack.push(Term::Operation(oper));
 			}
@@ -426,7 +415,7 @@ fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
 			expected: Expected::Operator,
 		});
 	}
-	
+
 	if let Some(term) = stack.pop() {
 		Ok(term)
 	} else {

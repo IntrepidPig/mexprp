@@ -105,7 +105,7 @@ impl Operate for Neg {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
 		Ok(-self.a.eval_ctx(ctx)?)
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("(-{})", self.a)
 	}
@@ -120,7 +120,7 @@ impl Operate for Pos {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
 		Ok(self.a.eval_ctx(ctx)?)
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("(+{})", self.a)
 	}
@@ -134,15 +134,15 @@ pub(crate) struct Fact {
 impl Operate for Fact {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
 		let a = self.a.eval_ctx(ctx)?.round() as i64;
-		
+
 		let mut sum = 1i64;
 		for i in 1..=a {
 			sum = sum * i
 		}
-		
+
 		Ok(sum as f64)
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("({}!)", self.a)
 	}
@@ -156,12 +156,11 @@ pub(crate) struct Percent {
 impl Operate for Percent {
 	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
 		let a = self.a.eval_ctx(ctx)?;
-		
+
 		Ok(a / 100.0)
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("({}%)", self.a)
 	}
 }
-
