@@ -1,6 +1,7 @@
 use std::fmt;
 use opers::Calculation;
 use num::Num;
+use answer::Answer;
 
 #[derive(Debug, Clone)]
 pub struct ComplexFloat {
@@ -10,31 +11,28 @@ pub struct ComplexFloat {
 
 impl Num for ComplexFloat {
 	fn from_f64(t: f64) -> Calculation<Self> {
-		Ok(ComplexFloat {
+		Ok(Answer::Single(ComplexFloat {
 			r: t,
 			i: 0.0,
-		})
+		}))
 	}
 	
 	fn from_f64_complex((r, i): (f64, f64)) -> Calculation<Self> {
-		Ok(ComplexFloat {
-			r,
-			i,
-		})
+		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 	
 	fn add(&self, other: &Self) -> Calculation<Self> {
 		let r = self.r + other.r;
 		let i = self.i + other.i;
 		
-		Ok(ComplexFloat { r, i })
+		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 	
 	fn sub(&self, other: &Self) -> Calculation<Self> {
 		let r = self.r - other.r;
 		let i = self.i - other.i;
 		
-		Ok(ComplexFloat { r, i })
+		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 	
 	fn mul(&self, other: &Self) -> Calculation<Self> {
@@ -45,17 +43,23 @@ impl Num for ComplexFloat {
 		let r = r1 - r2;
 		let i = i1 + i2;
 		
-		Ok(ComplexFloat { r, i })
+		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 	
 	fn div(&self, other: &Self) -> Calculation<Self> {
 		let conj = other.conjugate();
-		let num = self.mul(&conj)?;
-		let den = other.mul(&conj)?.r;
-		let r = num.r / den;
-		let i = num.i / den;
+		let num = match self.mul(&conj)? {
+			Answer::Single(n) => n,
+			Answer::Multiple(_) => unreachable!(),
+		};
+		let den = match other.mul(&conj)? {
+			Answer::Single(n) => n,
+			Answer::Multiple(_) => unreachable!(),
+		};
+		let r = num.r / den.r;
+		let i = num.i / den.r;
 		
-		Ok(ComplexFloat { r, i })
+		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 	
 	fn pow(&self, other: &Self) -> Calculation<Self> {

@@ -69,6 +69,8 @@ pub mod errors;
 pub mod context;
 /// Number representation(s)
 pub mod num;
+/// Answer enum
+pub mod answer;
 #[cfg(test)]
 mod tests;
 
@@ -78,13 +80,14 @@ pub use context::Context;
 pub use errors::{EvalError, MathError, ParseError};
 pub use num::Num;
 pub use opers::Calculation;
+pub use answer::Answer;
 
 /// Parse and evaluate a string
-pub fn eval<N: Num + 'static>(expr: &str) -> Result<N, EvalError> {
+pub fn eval<N: Num + 'static>(expr: &str) -> Result<Answer<N>, EvalError> {
 	Ok(Term::parse(expr)?.eval()?)
 }
 
 /// Parse and evaluate a string with the given context
-pub fn eval_ctx<N: Num + 'static>(expr: &str, ctx: &Context<N>) -> Result<N, EvalError> {
+pub fn eval_ctx<N: Num + 'static>(expr: &str, ctx: &Context<N>) -> Result<Answer<N>, EvalError> {
 	Ok(Term::parse_ctx(expr, ctx)?.eval_ctx(ctx)?)
 }

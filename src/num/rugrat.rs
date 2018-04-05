@@ -2,7 +2,8 @@ use std::fmt;
 use rug::Rational;
 use opers::Calculation;
 use errors::MathError;
-use super::Num;
+use answer::Answer;
+use num::Num;
 
 #[derive(Debug, Clone)]
 pub struct ComplexRugRat {
@@ -12,7 +13,7 @@ pub struct ComplexRugRat {
 
 impl Num for ComplexRugRat {
 	fn from_f64(t: f64) -> Calculation<Self> {
-		Ok(ComplexRugRat {
+		Ok(Answer::Single(ComplexRugRat {
 			r: {
 				if let Some(r) = Rational::from_f64(t) {
 					r
@@ -21,28 +22,28 @@ impl Num for ComplexRugRat {
 				}
 			},
 			i: Rational::from(0),
-		})
+		}))
 	}
 	
 	fn from_f64_complex((r, i): (f64, f64)) -> Calculation<Self> {
-		Ok(ComplexRugRat {
+		Ok(Answer::Single(ComplexRugRat {
 			r: Rational::from_f64(r).unwrap(),
 			i: Rational::from_f64(i).unwrap(),
-		})
+		}))
 	}
 	
 	fn add(&self, other: &Self) -> Calculation<Self> {
 		let r = Rational::from(&self.r + &other.r);
 		let i = Rational::from(&self.i + &other.i);
 		
-		Ok(ComplexRugRat { r, i })
+		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
 	
 	fn sub(&self, other: &Self) -> Calculation<Self> {
 		let r = Rational::from(&self.r - &other.r);
 		let i = Rational::from(&self.i - &other.i);
 		
-		Ok(ComplexRugRat { r, i })
+		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
 	
 	fn mul(&self, other: &Self) -> Calculation<Self> {
@@ -53,17 +54,23 @@ impl Num for ComplexRugRat {
 		let r = r1 - r2;
 		let i = i1 + i2;
 		
-		Ok(ComplexRugRat { r, i })
+		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
 	
 	fn div(&self, other: &Self) -> Calculation<Self> {
 		let conj = other.conjugate();
-		let num = self.mul(&conj)?;
-		let den = other.mul(&conj)?.r;
-		let r = Rational::from(&num.r / &den);
-		let i = Rational::from(&num.i / &den);
+		let num = match self.mul(&conj)? {
+			Answer::Single(n) => n,
+			Answer::Multiple(_) => unreachable!(),
+		};
+		let den = match other.mul(&conj)? {
+			Answer::Single(n) => n,
+			Answer::Multiple(_) => unreachable!(),
+		};
+		let r = Rational::from(&num.r / &den.r);
+		let i = Rational::from(&num.i / &den.r);
 		
-		Ok(ComplexRugRat { r, i })
+		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
 	
 	fn pow(&self, other: &Self) -> Calculation<Self> {

@@ -3,10 +3,11 @@ use std::fmt::Debug;
 use expr::Term;
 use context::Context;
 use errors::MathError;
-use num::*;
+use num::Num;
+use answer::Answer;
 
 /// The result of an evaluation
-pub type Calculation<N> = Result<N, MathError>;
+pub type Calculation<N> = Result<Answer<N>, MathError>;
 
 /// A trait for operations
 pub trait Operate<N: Num>: Debug {
@@ -27,7 +28,7 @@ impl<N: Num + 'static> Operate<N> for Add<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.add(&b)
+		a.op(&b, |a, b| a.add(b))
 	}
 
 	fn to_string(&self) -> String {
@@ -46,7 +47,7 @@ impl<N: Num + 'static> Operate<N> for Sub<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.sub(&b)
+		a.op(&b, |a, b| a.sub(b))
 	}
 
 	fn to_string(&self) -> String {
@@ -65,7 +66,7 @@ impl<N: Num + 'static> Operate<N> for Mul<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.mul(&b)
+		a.op(&b, |a, b| a.mul(b))
 	}
 
 	fn to_string(&self) -> String {
@@ -84,7 +85,7 @@ impl<N: Num + 'static> Operate<N> for Div<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.div(&b)
+		a.op(&b, |a, b| a.div(b))
 	}
 
 	fn to_string(&self) -> String {
@@ -103,7 +104,7 @@ impl<N: Num + 'static> Operate<N> for Pow<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.pow(&b)
+		a.op(&b, |a, b| a.pow(b))
 	}
 
 	fn to_string(&self) -> String {
@@ -120,7 +121,7 @@ impl<N: Num + 'static> Operate<N> for Neg<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		
-		a.mul(&N::from_f64(-1.0)?)
+		a.op(&N::from_f64(-1.0)?, |a, b| a.mul(b))
 	}
 
 	fn to_string(&self) -> String {
@@ -169,7 +170,7 @@ impl<N: Num + 'static> Operate<N> for Percent<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		
-		a.mul(&N::from_f64(0.01)?)
+		a.op(&N::from_f64(-0.01)?, |a, b| a.mul(b))
 	}
 
 	fn to_string(&self) -> String {

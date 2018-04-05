@@ -7,6 +7,7 @@ use parse::*;
 use errors::*;
 use context::*;
 use num::*;
+use answer::*;
 
 /// The main representation of parsed equations. It is an operand that can contain an operation between
 /// more of itself. This form is the only one that can be directly evaluated. Does not include it's own
@@ -14,7 +15,7 @@ use num::*;
 #[derive(Debug, Clone)]
 pub enum Term<N: Num> {
 	/// A number
-	Num(N),
+	Num(Answer<N>),
 	/// An operation
 	Operation(Rc<Operate<N>>),
 	/// A function with the given arguments
@@ -124,6 +125,12 @@ impl<N: Num> From<Expression<N>> for Term<N> {
 
 impl<N: Num> From<N> for Term<N> {
 	fn from(t: N) -> Term<N> {
+		Term::Num(Answer::Single(t))
+	}
+}
+
+impl<N: Num> From<Answer<N>> for Term<N> {
+	fn from(t: Answer<N>) -> Term<N> {
 		Term::Num(t)
 	}
 }
