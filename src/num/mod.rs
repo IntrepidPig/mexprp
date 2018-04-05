@@ -3,12 +3,14 @@ use std::marker::Sized;
 use std::cmp::PartialOrd;
 
 #[cfg(feature = "rug")]
+mod complexrugrat;
+#[cfg(feature = "rug")]
 mod rugrat;
 mod complexfloat;
 mod float64;
 
 #[cfg(feature = "rug")]
-pub use self::rugrat::ComplexRugRat;
+pub use self::complexrugrat::ComplexRugRat;
 pub use self::complexfloat::ComplexFloat;
 
 use opers::Calculation;
