@@ -5,6 +5,7 @@ use std::fmt;
 
 use expr::Term;
 use func::Func;
+use num::Num;
 
 /// A context holds values for variables and functions to be used in expressions. It is useful for both
 /// parsing and evaluation expressions. During parsing, all names will be treated as variables unless
@@ -63,53 +64,54 @@ use func::Func;
 /// incorrect way, return a `MathError::IncorrectArguments`. If any errors occur during evaluation, you
 /// can try to find a `MathError` variant that fits or return `MathError::Other`.
 #[derive(Clone)]
-pub struct Context {
+pub struct Context<N: Num> {
 	/// HashMap of variables
-	pub vars: HashMap<String, Term>,
+	pub vars: HashMap<String, Term<N>>,
 	/// HashMap of functions
-	pub funcs: HashMap<String, Rc<Func>>,
+	pub funcs: HashMap<String, Rc<Func<N>>>,
 }
 
-impl Context {
+impl<N: Num> Context<N> {
 	/// Returns a default Context
 	pub fn new() -> Self {
 		use self::funcs::*;
 
-		let mut ctx = Context {
+		let mut ctx: Context<N> = Context {
 			vars: HashMap::new(),
 			funcs: HashMap::new(),
 		};
 
-		ctx.set_var("pi", consts::PI);
-		ctx.set_var("e", consts::E);
+		ctx.set_var("pi", N::from_f64(consts::PI).unwrap());
+		ctx.set_var("e", N::from_f64(consts::E).unwrap());
+		ctx.set_var("i", N::from_f64_complex((0.0, 1.0)).unwrap());
 
 		ctx.funcs.insert("sin".to_string(), Rc::new(Sin));
-		ctx.funcs.insert("cos".to_string(), Rc::new(Cos));
+		/*ctx.funcs.insert("cos".to_string(), Rc::new(Cos));
 		ctx.funcs.insert("max".to_string(), Rc::new(Max));
 		ctx.funcs.insert("min".to_string(), Rc::new(Min));
-		ctx.funcs.insert("sqrt".to_string(), Rc::new(Sqrt));
+		ctx.funcs.insert("sqrt".to_string(), Rc::new(Sqrt));*/
 
 		ctx
 	}
 
 	/// Add a variable definition to the context, replacing any existing one with the same name
-	pub fn set_var<T: Into<Term>>(&mut self, name: &str, val: T) {
+	pub fn set_var<T: Into<Term<N>>>(&mut self, name: &str, val: T) {
 		self.vars.insert(name.to_string(), val.into());
 	}
 
 	/// Add a function definition to the context, replacing any existing one with the same name
-	pub fn set_func<F: Func + 'static>(&mut self, name: &str, func: F) {
+	pub fn set_func<F: Func<N> + 'static>(&mut self, name: &str, func: F) {
 		self.funcs.insert(name.to_string(), Rc::new(func));
 	}
 }
 
-impl Default for Context {
+impl<N: Num> Default for Context<N> {
 	fn default() -> Self {
 		Self::new()
 	}
 }
 
-impl fmt::Debug for Context {
+impl<N: Num> fmt::Debug for Context<N> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		write!(f, "Context {{ vars: {:?}, funcs: {{{}}} }}", self.vars, {
 			let mut output = String::new();
@@ -128,21 +130,24 @@ pub(in context) mod funcs {
 	use std::cmp::{Ordering, PartialOrd};
 
 	use context::Context;
-	use expr::{Calculation, Term};
+	use expr::Term;
 	use errors::MathError;
 	use func::Func;
+	use opers::Calculation;
+	use num::Num;
 
 	pub struct Sin;
-	impl Func for Sin {
-		fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
+	impl<N: Num> Func<N> for Sin {
+		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			Ok(args[0].eval_ctx(ctx)?.sin())
+			
+			unimplemented!()
 		}
 	}
 
-	pub struct Cos;
+	/*pub struct Cos;
 	impl Func for Cos {
 		fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
 			if args.len() != 1 {
@@ -222,5 +227,5 @@ pub(in context) mod funcs {
 		} else {
 			Ok(a.partial_cmp(&b).unwrap())
 		}
-	}
+	}*/
 }

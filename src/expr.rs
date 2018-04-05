@@ -6,18 +6,19 @@ use opers::*;
 use parse::*;
 use errors::*;
 use context::*;
+use num::*;
 
 /// The main representation of parsed equations. It is an operand that can contain an operation between
 /// more of itself. This form is the only one that can be directly evaluated. Does not include it's own
 /// context.
 #[derive(Debug, Clone)]
-pub enum Term {
+pub enum Term<N: Num> {
 	/// A number
-	Num(f64),
+	Num(N),
 	/// An operation
-	Operation(Rc<Operate>),
+	Operation(Rc<Operate<N>>),
 	/// A function with the given arguments
-	Function(String, Vec<Term>),
+	Function(String, Vec<Term<N>>),
 	/// A variable
 	Var(String),
 }
@@ -39,7 +40,7 @@ enum Expr {
 	Func(String, Vec<Vec<Expr>>),
 }
 
-impl Term {
+impl<N: Num + 'static> Term<N> {
 	/// Parse a string into an expression
 	pub fn parse(raw: &str) -> Result<Self, ParseError> {
 		let ctx = Context::new();
@@ -47,7 +48,7 @@ impl Term {
 	}
 
 	/// Parse a string into an expression with the given context
-	pub fn parse_ctx(raw: &str, ctx: &Context) -> Result<Self, ParseError> {
+	pub fn parse_ctx(raw: &str, ctx: &Context<N>) -> Result<Self, ParseError> {
 		let raw = raw.trim();
 		let paren_tokens = get_tokens(raw)?;
 		let exprs = paren_to_exprs(paren_tokens, ctx)?;
@@ -59,16 +60,16 @@ impl Term {
 	}
 
 	/// Evaluate the term with the default context
-	pub fn eval(&self) -> Calculation {
+	pub fn eval(&self) -> Calculation<N> {
 		let ctx = Context::new();
 		self.eval_ctx(&ctx)
 	}
 
 	/// Evaluate the term with the given context
-	pub fn eval_ctx(&self, ctx: &Context) -> Calculation {
+	pub fn eval_ctx(&self, ctx: &Context<N>) -> Calculation<N> {
 		// Evaluate each possible term type
 		match *self {
-			Term::Num(num) => Ok(num),                   // Already evaluated
+			Term::Num(ref num) => Ok(num.clone()),                   // Already evaluated
 			Term::Operation(ref oper) => oper.eval(ctx), // Perform the operation with the given context
 			Term::Function(ref name, ref args) => {
 				// Execute the function if it exists
@@ -92,7 +93,7 @@ impl Term {
 	/// Express this term as a string
 	pub fn to_string(&self) -> String {
 		match *self {
-			Term::Num(num) => format!("{}", num),
+			Term::Num(ref num) => format!("{}", num),
 			Term::Operation(ref op) => format!("{}", op.to_string()),
 			Term::Function(ref name, ref args) => format!("{}({})", name, {
 				let mut buf = String::new();
@@ -109,21 +110,21 @@ impl Term {
 	}
 }
 
-impl fmt::Display for Term {
+impl<N: Num + 'static> fmt::Display for Term<N> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		write!(f, "{}", self.to_string())
 	}
 }
 
-impl From<f64> for Term {
-	fn from(t: f64) -> Self {
-		Term::Num(t)
+impl<N: Num> From<Expression<N>> for Term<N> {
+	fn from(t: Expression<N>) -> Term<N> {
+		t.term
 	}
 }
 
-impl From<Expression> for Term {
-	fn from(t: Expression) -> Term {
-		t.term
+impl<N: Num> From<N> for Term<N> {
+	fn from(t: N) -> Term<N> {
+		Term::Num(t)
 	}
 }
 
@@ -131,16 +132,16 @@ impl From<Expression> for Term {
 /// context the Expression was parsed with, and the Term the raw form was parsed as. For just the
 /// parsed version of the expression, use the Term enum.
 #[derive(Debug)]
-pub struct Expression {
+pub struct Expression<N: Num> {
 	/// The original string passed into this expression
 	pub string: String,
 	/// Context the expression was parsed with
-	pub ctx: Context,
+	pub ctx: Context<N>,
 	/// The term this string has been parsed as
-	pub term: Term,
+	pub term: Term<N>,
 }
 
-impl Expression {
+impl<N: Num + 'static> Expression<N> {
 	/// Parse a string into an expression
 	pub fn parse(raw: &str) -> Result<Self, ParseError> {
 		let ctx = Context::new();
@@ -148,7 +149,7 @@ impl Expression {
 	}
 
 	/// Parse a string into an expression with the given context
-	pub fn parse_ctx(raw: &str, ctx: Context) -> Result<Self, ParseError> {
+	pub fn parse_ctx(raw: &str, ctx: Context<N>) -> Result<Self, ParseError> {
 		let raw = raw.trim();
 		let term = Term::parse_ctx(raw, &ctx)?;
 
@@ -160,12 +161,12 @@ impl Expression {
 	}
 
 	/// Evaluate the expression
-	pub fn eval(&self) -> Calculation {
+	pub fn eval(&self) -> Calculation<N> {
 		self.eval_ctx(&self.ctx)
 	}
 
 	/// Evaluate the expression with the given context
-	pub fn eval_ctx(&self, ctx: &Context) -> Calculation {
+	pub fn eval_ctx(&self, ctx: &Context<N>) -> Calculation<N> {
 		self.term.eval_ctx(ctx)
 	}
 }
@@ -173,7 +174,7 @@ impl Expression {
 /// Convert ParenTokens to exprs. This function accomplishes two things at once. First, it decides
 /// if names are functions or variables depending on their context. Second, it splits the arguments
 /// of a function up by their commas, removing the need for a comma in the token representation.
-fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, ParseError> {
+fn paren_to_exprs<N: Num + 'static>(raw: Vec<ParenToken>, ctx: &Context<N>) -> Result<Vec<Expr>, ParseError> {
 	let mut mtokens = Vec::new();
 	// Names that have yet to be decided
 	let mut pending_name = None;
@@ -236,7 +237,7 @@ fn paren_to_exprs(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Expr>, Pars
 
 /// Converts a Vec of ParenTokens into a Vec of a Vec of Exprs, splitting them by commas and
 /// then parsing them into Exprs.
-fn tokens_to_args(raw: Vec<ParenToken>, ctx: &Context) -> Result<Vec<Vec<Expr>>, ParseError> {
+fn tokens_to_args<N: Num + 'static>(raw: Vec<ParenToken>, ctx: &Context<N>) -> Result<Vec<Vec<Expr>>, ParseError> {
 	let args: Vec<&[ParenToken]> = raw.split(|ptoken| match *ptoken {
 		ParenToken::Comma => true,
 		_ => false,
@@ -340,11 +341,11 @@ fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
 }
 
 /// Parse a postfix token stream into a single term
-fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
+fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>) -> Result<Term<N>, ParseError> {
 	let mut stack = Vec::new();
 	for texpr in raw {
 		match texpr {
-			Expr::Num(num) => stack.push(Term::Num(num)), // Put num on the stack
+			Expr::Num(num) => stack.push(Term::Num(N::from_f64(num).unwrap())), // Put num on the stack
 			Expr::Op(op) => {
 				// Push the operation with the last two operands on the stack
 				macro_rules! pop {
@@ -358,7 +359,7 @@ fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
 						}
 					}
 
-				let oper: Rc<Operate> = match op {
+				let oper: Rc<Operate<N>> = match op {
 					Op::In(op) => match op {
 						In::Add => Rc::new(Add {
 							b: pop!(),
@@ -425,7 +426,7 @@ fn postfix_to_term(raw: Vec<Expr>) -> Result<Term, ParseError> {
 	}
 }
 
-impl fmt::Display for Expression {
+impl<N: Num> fmt::Display for Expression<N> {
 	fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
 		f.write_str(&self.string)
 	}
@@ -441,6 +442,3 @@ impl Expr {
 		}
 	}
 }
-
-/// The result of an evaluation (Result<f64, MathError>)
-pub type Calculation = Result<f64, MathError>;

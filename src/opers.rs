@@ -3,24 +3,31 @@ use std::fmt::Debug;
 use expr::Term;
 use context::Context;
 use errors::MathError;
+use num::*;
+
+/// The result of an evaluation
+pub type Calculation<N> = Result<N, MathError>;
 
 /// A trait for operations
-pub trait Operate: Debug {
+pub trait Operate<N: Num>: Debug {
 	/// Evalute the operation or return an error
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError>;
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N>;
 	/// Convert the operation to a string representation
 	fn to_string(&self) -> String;
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Add {
-	pub a: Term,
-	pub b: Term,
+pub(crate) struct Add<N: Num> {
+	pub a: Term<N>,
+	pub b: Term<N>,
 }
 
-impl Operate for Add {
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(self.a.eval_ctx(ctx)? + self.b.eval_ctx(ctx)?)
+impl<N: Num + 'static> Operate<N> for Add<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		let a = self.a.eval_ctx(ctx)?;
+		let b = self.b.eval_ctx(ctx)?;
+		
+		a.add(&b)
 	}
 
 	fn to_string(&self) -> String {
@@ -29,14 +36,17 @@ impl Operate for Add {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Sub {
-	pub a: Term,
-	pub b: Term,
+pub(crate) struct Sub<N: Num> {
+	pub a: Term<N>,
+	pub b: Term<N>,
 }
 
-impl Operate for Sub {
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(self.a.eval_ctx(ctx)? - self.b.eval_ctx(ctx)?)
+impl<N: Num + 'static> Operate<N> for Sub<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		let a = self.a.eval_ctx(ctx)?;
+		let b = self.b.eval_ctx(ctx)?;
+		
+		a.sub(&b)
 	}
 
 	fn to_string(&self) -> String {
@@ -45,14 +55,17 @@ impl Operate for Sub {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Mul {
-	pub a: Term,
-	pub b: Term,
+pub(crate) struct Mul<N: Num> {
+	pub a: Term<N>,
+	pub b: Term<N>,
 }
 
-impl Operate for Mul {
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(self.a.eval_ctx(ctx)? * self.b.eval_ctx(ctx)?)
+impl<N: Num + 'static> Operate<N> for Mul<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		let a = self.a.eval_ctx(ctx)?;
+		let b = self.b.eval_ctx(ctx)?;
+		
+		a.mul(&b)
 	}
 
 	fn to_string(&self) -> String {
@@ -61,18 +74,17 @@ impl Operate for Mul {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Div {
-	pub a: Term,
-	pub b: Term,
+pub(crate) struct Div<N: Num> {
+	pub a: Term<N>,
+	pub b: Term<N>,
 }
 
-impl Operate for Div {
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
+impl<N: Num + 'static> Operate<N> for Div<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
-		if b == 0.0 {
-			return Err(MathError::DivideByZero);
-		}
-		Ok(self.a.eval_ctx(ctx)? / b)
+		
+		a.div(&b)
 	}
 
 	fn to_string(&self) -> String {
@@ -81,14 +93,17 @@ impl Operate for Div {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Pow {
-	pub a: Term,
-	pub b: Term,
+pub(crate) struct Pow<N: Num> {
+	pub a: Term<N>,
+	pub b: Term<N>,
 }
 
-impl Operate for Pow {
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(self.a.eval_ctx(ctx)?.powf(self.b.eval_ctx(ctx)?))
+impl<N: Num + 'static> Operate<N> for Pow<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		let a = self.a.eval_ctx(ctx)?;
+		let b = self.b.eval_ctx(ctx)?;
+		
+		a.pow(&b)
 	}
 
 	fn to_string(&self) -> String {
@@ -97,13 +112,15 @@ impl Operate for Pow {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Neg {
-	pub a: Term,
+pub(crate) struct Neg<N: Num> {
+	pub a: Term<N>,
 }
 
-impl Operate for Neg {
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(-self.a.eval_ctx(ctx)?)
+impl<N: Num + 'static> Operate<N> for Neg<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		let a = self.a.eval_ctx(ctx)?;
+		
+		a.mul(&N::from_f64(-1.0)?)
 	}
 
 	fn to_string(&self) -> String {
@@ -112,13 +129,15 @@ impl Operate for Neg {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Pos {
-	pub a: Term,
+pub(crate) struct Pos<N: Num> {
+	pub a: Term<N>,
 }
 
-impl Operate for Pos {
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		Ok(self.a.eval_ctx(ctx)?)
+impl<N: Num + 'static> Operate<N> for Pos<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		let a = self.a.eval_ctx(ctx)?;
+		
+		Ok(a)
 	}
 
 	fn to_string(&self) -> String {
@@ -127,20 +146,13 @@ impl Operate for Pos {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Fact {
-	pub a: Term,
+pub(crate) struct Fact<N: Num> {
+	pub a: Term<N>,
 }
 
-impl Operate for Fact {
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
-		let a = self.a.eval_ctx(ctx)?.round() as i64;
-
-		let mut sum = 1i64;
-		for i in 1..=a {
-			sum = sum * i
-		}
-
-		Ok(sum as f64)
+impl<N: Num + 'static> Operate<N> for Fact<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		unimplemented!()
 	}
 
 	fn to_string(&self) -> String {
@@ -149,15 +161,15 @@ impl Operate for Fact {
 }
 
 #[derive(Debug, Clone)]
-pub(crate) struct Percent {
-	pub a: Term,
+pub(crate) struct Percent<N: Num> {
+	pub a: Term<N>,
 }
 
-impl Operate for Percent {
-	fn eval(&self, ctx: &Context) -> Result<f64, MathError> {
+impl<N: Num + 'static> Operate<N> for Percent<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
-
-		Ok(a / 100.0)
+		
+		a.mul(&N::from_f64(0.01)?)
 	}
 
 	fn to_string(&self) -> String {
