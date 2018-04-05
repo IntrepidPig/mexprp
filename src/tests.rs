@@ -37,8 +37,8 @@ fn funky() {
 
 #[test]
 fn sin() {
-	let expr: Expression<ComplexFloat> = Expression::parse("2 + sin(3.1415926)").unwrap();
-	assert!((expr.eval().unwrap().unwrap_single().r - 2.0) < 0.005);
+	let expr: Expression<f64> = Expression::parse("2 + sin(3.1415926)").unwrap();
+	assert!((expr.eval().unwrap().unwrap_single() - 2.0) < 0.005);
 }
 
 #[test]

@@ -26,4 +26,6 @@ pub trait Num: fmt::Debug + fmt::Display + Clone where
 	fn mul(&self, other: &Self) -> Calculation<Self>;
 	fn div(&self, other: &Self) -> Calculation<Self>;
 	fn pow(&self, other: &Self) -> Calculation<Self>;
+	fn sqrt(&self) -> Calculation<Self>;
+	fn sin(&self) -> Calculation<Self>;
 }

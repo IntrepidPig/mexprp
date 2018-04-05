@@ -84,6 +84,14 @@ impl Num for ComplexRugRat {
 	fn pow(&self, other: &Self) -> Calculation<Self> {
 		unimplemented!()
 	}
+	
+	fn sqrt(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn sin(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
 }
 
 impl ComplexRugRat {

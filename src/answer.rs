@@ -59,6 +59,32 @@ impl<N: Num> Answer<N> {
 		}
 	}
 	
+	pub fn unop<F: Fn(&N) -> Calculation<N>>(&self, oper: F) -> Calculation<N> {
+		fn push_answers<N: Num>(answer: Answer<N>, list: &mut Vec<N>) {
+			match answer {
+				Answer::Single(n) => list.push(n),
+				Answer::Multiple(ns) => {
+					for n in ns {
+						list.push(n)
+					}
+				}
+			}
+		}
+		
+		match *self {
+			Answer::Single(ref n) => {
+				oper(n)
+			},
+			Answer::Multiple(ref ns) => {
+				let mut answers = Vec::new();
+				for n in ns {
+					push_answers(oper(n)?, &mut answers);
+				}
+				Ok(Answer::Multiple(answers))
+			},
+		}
+	}
+	
 	pub fn unwrap_single(self) -> N {
 		match self {
 			Answer::Single(n) => n,

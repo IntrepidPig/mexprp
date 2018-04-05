@@ -3,6 +3,7 @@ use std::f64::consts;
 use std::rc::Rc;
 use std::fmt;
 
+use answer::Answer;
 use expr::Term;
 use func::Func;
 use num::Num;
@@ -71,7 +72,7 @@ pub struct Context<N: Num> {
 	pub funcs: HashMap<String, Rc<Func<N>>>,
 }
 
-impl<N: Num> Context<N> {
+impl<N: Num + 'static> Context<N> {
 	/// Returns a default Context
 	pub fn new() -> Self {
 		use self::funcs::*;
@@ -105,7 +106,7 @@ impl<N: Num> Context<N> {
 	}
 }
 
-impl<N: Num> Default for Context<N> {
+impl<N: Num + 'static> Default for Context<N> {
 	fn default() -> Self {
 		Self::new()
 	}
@@ -137,13 +138,15 @@ pub(in context) mod funcs {
 	use num::Num;
 
 	pub struct Sin;
-	impl<N: Num> Func<N> for Sin {
+	impl<N: Num + 'static> Func<N> for Sin {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
 			
-			unimplemented!()
+			let a = args[0].eval_ctx(ctx)?;
+			
+			a.unop(|a| Num::sin(a))
 		}
 	}
 

@@ -1,3 +1,5 @@
+use std::f64;
+
 use opers::Calculation;
 use errors::MathError;
 use num::Num;
@@ -34,5 +36,14 @@ impl Num for f64 {
 	
 	fn pow(&self, other: &Self) -> Calculation<Self> {
 		Ok(Answer::Single(self.powf(*other)))
+	}
+	
+	fn sqrt(&self) -> Calculation<Self> {
+		let sqrt = f64::sqrt(*self);
+		Ok(Answer::Multiple(vec![sqrt, -sqrt]))
+	}
+	
+	fn sin(&self) -> Calculation<Self> {
+		Ok(Answer::Single(f64::sin(*self)))
 	}
 }
