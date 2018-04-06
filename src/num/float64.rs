@@ -117,4 +117,8 @@ impl Num for f64 {
 	fn round(&self) -> Calculation<Self> {
 		Ok(Answer::Single(f64::round(*self)))
 	}
+	
+	fn log(&self, other: &Self) -> Calculation<Self> {
+		Ok(Answer::Single(f64::log(*self, *other)))
+	}
 }

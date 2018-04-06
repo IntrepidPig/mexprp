@@ -100,4 +100,8 @@ impl Num for Rational {
 	fn round(&self) -> Calculation<Self> {
 		unimplemented!()
 	}
+	
+	fn log(&self, other: &Self) -> Calculation<Self> {
+		unimplemented!()
+	}
 }

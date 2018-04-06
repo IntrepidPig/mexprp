@@ -58,4 +58,5 @@ pub trait Num: fmt::Debug + fmt::Display + Clone + PartialOrd + PartialEq where
 	fn floor(&self) -> Calculation<Self>;
 	fn ceil(&self) -> Calculation<Self>;
 	fn round(&self) -> Calculation<Self>;
+	fn log(&self, other: &Self) -> Calculation<Self>;
 }

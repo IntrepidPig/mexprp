@@ -122,6 +122,10 @@ impl Num for ComplexFloat {
 	fn round(&self) -> Calculation<Self> {
 		unimplemented!()
 	}
+	
+	fn log(&self, other: &Self) -> Calculation<Self> {
+		unimplemented!()
+	}
 }
 
 impl ComplexFloat {
