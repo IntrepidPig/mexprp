@@ -1,4 +1,6 @@
 use std::fmt;
+use std::cmp::Ordering;
+
 use opers::Calculation;
 use num::Num;
 use answer::Answer;
@@ -143,6 +145,18 @@ impl From<f64> for ComplexFloat {
 			r: t,
 			i: 0.0,
 		}
+	}
+}
+
+impl PartialOrd for ComplexFloat {
+	fn partial_cmp(&self, other: &ComplexFloat) -> Option<Ordering> {
+		self.r.partial_cmp(&other.r)
+	}
+}
+
+impl PartialEq for ComplexFloat {
+	fn eq(&self, other: &ComplexFloat) -> bool {
+		self.r.eq(&other.r)
 	}
 }
 

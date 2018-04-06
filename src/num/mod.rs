@@ -15,7 +15,7 @@ pub use self::complexfloat::ComplexFloat;
 
 use opers::Calculation;
 
-pub trait Num: fmt::Debug + fmt::Display + Clone where
+pub trait Num: fmt::Debug + fmt::Display + Clone + PartialOrd + PartialEq where
 	Self: Sized
 {
 	fn from_f64(t: f64) -> Calculation<Self>;

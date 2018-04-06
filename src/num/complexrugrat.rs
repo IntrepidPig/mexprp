@@ -1,4 +1,6 @@
 use std::fmt;
+use std::cmp::Ordering;
+
 use rug::Rational;
 use opers::Calculation;
 use errors::MathError;
@@ -143,6 +145,18 @@ impl ComplexRugRat {
 			r: self.r.clone(),
 			i: -self.i.clone(),
 		}
+	}
+}
+
+impl PartialOrd for ComplexRugRat {
+	fn partial_cmp(&self, other: &ComplexRugRat) -> Option<Ordering> {
+		Some(self.r.cmp(&other.r))
+	}
+}
+
+impl PartialEq for ComplexRugRat {
+	fn eq(&self, other: &ComplexRugRat) -> bool {
+		self.r.eq(&other.r)
 	}
 }
 
