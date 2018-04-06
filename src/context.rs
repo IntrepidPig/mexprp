@@ -87,10 +87,10 @@ impl<N: Num + 'static> Context<N> {
 		ctx.set_var("i", N::from_f64_complex((0.0, 1.0)).unwrap());
 
 		ctx.funcs.insert("sin".to_string(), Rc::new(Sin));
-		/*ctx.funcs.insert("cos".to_string(), Rc::new(Cos));
+		ctx.funcs.insert("cos".to_string(), Rc::new(Cos));
 		ctx.funcs.insert("max".to_string(), Rc::new(Max));
 		ctx.funcs.insert("min".to_string(), Rc::new(Min));
-		ctx.funcs.insert("sqrt".to_string(), Rc::new(Sqrt));*/
+		ctx.funcs.insert("sqrt".to_string(), Rc::new(Sqrt));
 
 		ctx
 	}
@@ -136,6 +136,7 @@ pub(in context) mod funcs {
 	use func::Func;
 	use opers::Calculation;
 	use num::Num;
+	use answer::Answer;
 
 	pub struct Sin;
 	impl<N: Num + 'static> Func<N> for Sin {
@@ -149,86 +150,102 @@ pub(in context) mod funcs {
 			a.unop(|a| Num::sin(a))
 		}
 	}
-
-	/*pub struct Cos;
-	impl Func for Cos {
-		fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
+	
+	pub struct Cos;
+	impl<N: Num + 'static> Func<N> for Cos {
+		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			Ok(args[0].eval_ctx(ctx)?.cos())
+			
+			let a = args[0].eval_ctx(ctx)?;
+			
+			a.unop(|a| Num::cos(a))
 		}
 	}
-
+	
 	pub struct Max;
-	impl Func for Max {
-		fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
+	impl<N: Num + 'static> Func<N> for Max {
+		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.is_empty() {
 				return Err(MathError::IncorrectArguments);
 			}
-			let mut max = args[0].eval_ctx(ctx)?;
-			for arg in &args[1..args.len()] {
-				let arg = arg.eval_ctx(ctx)?;
-				if float_cmp(arg, max)? == Ordering::Greater {
-					max = arg;
+			let mut extra = Vec::new();
+			let mut max = match args[0].eval_ctx(ctx)? {
+				Answer::Single(n) => n,
+				Answer::Multiple(mut ns) => {
+					let one = ns.pop().unwrap();
+					extra = ns;
+					one
+				}
+			};
+			
+			// Try to evaluate the arguments
+			let args: Vec<Answer<N>> = args.iter().map(|term| term.eval_ctx(ctx)).collect::<Result<Vec<Answer<N>>, MathError>>()?;
+			let mut new_args = Vec::new();
+			// Push each answer of each argument to `new_args`
+			for a in args {
+				match a {
+					Answer::Single(n) => new_args.push(n),
+					Answer::Multiple(mut ns) => new_args.append(&mut ns),
 				}
 			}
-			Ok(max)
+			// For every argument as well as the extraneous solutions from the first one
+			for arg in new_args[1..new_args.len()].iter().chain(extra.iter()) {
+				if Num::tryord(arg, &max)? == Ordering::Greater {
+					max = arg.clone();
+				}
+			}
+			Ok(Answer::Single(max))
 		}
 	}
-
+	
 	pub struct Min;
-	impl Func for Min {
-		fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
+	impl<N: Num + 'static> Func<N> for Min {
+		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.is_empty() {
 				return Err(MathError::IncorrectArguments);
 			}
-			let mut max = args[0].eval_ctx(ctx)?;
-			for arg in &args[1..args.len()] {
-				let arg = arg.eval_ctx(ctx)?;
-				if float_cmp(arg, max)? == Ordering::Less {
-					max = arg;
+			let mut extra = Vec::new();
+			let mut min = match args[0].eval_ctx(ctx)? {
+				Answer::Single(n) => n,
+				Answer::Multiple(mut ns) => {
+					let one = ns.pop().unwrap();
+					extra = ns;
+					one
+				}
+			};
+			
+			// Try to evaluate the arguments
+			let args: Vec<Answer<N>> = args.iter().map(|term| term.eval_ctx(ctx)).collect::<Result<Vec<Answer<N>>, MathError>>()?;
+			let mut new_args = Vec::new();
+			// Push each answer of each argument to `new_args`
+			for a in args {
+				match a {
+					Answer::Single(n) => new_args.push(n),
+					Answer::Multiple(mut ns) => new_args.append(&mut ns),
 				}
 			}
-			Ok(max)
+			// For every argument as well as the extraneous solutions from the first one
+			for arg in new_args[1..new_args.len()].iter().chain(extra.iter()) {
+				if Num::tryord(arg, &min)? == Ordering::Less {
+					min = arg.clone();
+				}
+			}
+			Ok(Answer::Single(min))
 		}
 	}
 
 	pub struct Sqrt;
-	impl Func for Sqrt {
-		fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
+	impl<N: Num + 'static> Func<N> for Sqrt {
+		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
+			
+			let a = args[0].eval_ctx(ctx)?;
 
-			Ok(args[0].eval_ctx(ctx)?.sqrt())
+			a.unop(|a| Num::sqrt(a))
 		}
 	}
-
-	/// Compares two floats. Errors if either is NaN. Infinity is greater than anything except equal
-	/// to infinity. Negative infinity is less than anything except equal to negative infinity.
-	fn float_cmp(a: f64, b: f64) -> Result<Ordering, MathError> {
-		if a.is_nan() || b.is_nan() {
-			return Err(MathError::NaN);
-		}
-		if a.is_infinite() {
-			if a.is_sign_positive() {
-				if b.is_infinite() && b.is_sign_positive() {
-					Ok(Ordering::Equal)
-				} else {
-					Ok(Ordering::Greater)
-				}
-			} else {
-				if b.is_infinite() && b.is_sign_negative() {
-					Ok(Ordering::Equal)
-				} else {
-					Ok(Ordering::Less)
-				}
-			}
-		} else if b.is_infinite() {
-			Ok(float_cmp(b, a)?.reverse())
-		} else {
-			Ok(a.partial_cmp(&b).unwrap())
-		}
-	}*/
 }

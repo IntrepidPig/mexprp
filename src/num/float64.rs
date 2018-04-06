@@ -1,4 +1,5 @@
 use std::f64;
+use std::cmp::Ordering;
 
 use opers::Calculation;
 use errors::MathError;
@@ -12,6 +13,32 @@ impl Num for f64 {
 	
 	fn from_f64_complex((r, _i): (f64, f64)) -> Calculation<Self> {
 		Ok(Answer::Single(r))
+	}
+	
+	/// Compares two floats. Errors if either is NaN. Infinity is greater than anything except equal
+	/// to infinity. Negative infinity is less than anything except equal to negative infinity.
+	fn tryord(&self, other: &Self) -> Result<Ordering, MathError> {
+		if self.is_nan() || other.is_nan() {
+			return Err(MathError::CmpError);
+		} else if self.is_infinite() {
+			if self.is_sign_positive() {
+				if other.is_infinite() && other.is_sign_positive() {
+					Ok(Ordering::Equal)
+				} else {
+					Ok(Ordering::Greater)
+				}
+			} else {
+				if other.is_infinite() && other.is_sign_negative() {
+					Ok(Ordering::Equal)
+				} else {
+					Ok(Ordering::Less)
+				}
+			}
+		} else if other.is_infinite() {
+			Ok(other.tryord(&self)?.reverse())
+		} else {
+			Ok(self.partial_cmp(other).unwrap())
+		}
 	}
 	
 	fn add(&self, other: &Self) -> Calculation<Self> {

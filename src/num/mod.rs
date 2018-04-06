@@ -1,6 +1,6 @@
 use std::fmt;
 use std::marker::Sized;
-use std::cmp::PartialOrd;
+use std::cmp::{Ord, Ordering};
 
 #[cfg(feature = "rug")]
 mod complexrugrat;
@@ -14,12 +14,21 @@ pub use self::complexrugrat::ComplexRugRat;
 pub use self::complexfloat::ComplexFloat;
 
 use opers::Calculation;
+use errors::MathError;
 
 pub trait Num: fmt::Debug + fmt::Display + Clone + PartialOrd + PartialEq where
 	Self: Sized
 {
 	fn from_f64(t: f64) -> Calculation<Self>;
 	fn from_f64_complex(t: (f64, f64)) -> Calculation<Self>;
+	
+	fn tryord(&self, other: &Self) -> Result<Ordering, MathError> {
+		if let Some(ord) = self.partial_cmp(other) {
+			Ok(ord)
+		} else {
+			Err(MathError::CmpError)
+		}
+	}
 	
 	fn add(&self, other: &Self) -> Calculation<Self>;
 	fn sub(&self, other: &Self) -> Calculation<Self>;

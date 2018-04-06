@@ -91,6 +91,13 @@ impl<N: Num> Answer<N> {
 			Answer::Multiple(_) => panic!("Attempted to unwrap multiple answers as one")
 		}
 	}
+	
+	pub fn to_vec(self) -> Vec<N> {
+		match self {
+			Answer::Single(n) => vec![n],
+			Answer::Multiple(ns) => ns,
+		}
+	}
 }
 
 impl<N: Num> fmt::Display for Answer<N> {

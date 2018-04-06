@@ -42,6 +42,9 @@ pub enum MathError {
 	/// A NaN value was used in a way that is not possible
 	#[fail(display = "A NaN value was attempted to be used as an operand")]
 	NaN,
+	/// Tried to compare a value that can't be compared (eg NaN, Infinity, etc.)
+	#[fail(display = "Tried to compare a value that can't be compared (eg NaN, Infinity, etc.)")]
+	CmpError,
 	/// Another type of Error occurred.
 	#[fail(display = "An unknown error occurred during evaluation")]
 	Other,
