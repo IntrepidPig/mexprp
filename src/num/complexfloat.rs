@@ -70,7 +70,51 @@ impl Num for ComplexFloat {
 		unimplemented!()
 	}
 	
+	fn nrt(&self, other: &Self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn abs(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
 	fn sin(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn cos(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn tan(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn asin(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn acos(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn atan(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn atan2(&self, other: &Self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn floor(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn ceil(&self) -> Calculation<Self> {
+		unimplemented!()
+	}
+	
+	fn round(&self) -> Calculation<Self> {
 		unimplemented!()
 	}
 }

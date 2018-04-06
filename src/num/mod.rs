@@ -27,5 +27,16 @@ pub trait Num: fmt::Debug + fmt::Display + Clone where
 	fn div(&self, other: &Self) -> Calculation<Self>;
 	fn pow(&self, other: &Self) -> Calculation<Self>;
 	fn sqrt(&self) -> Calculation<Self>;
+	fn nrt(&self, other: &Self) -> Calculation<Self>;
+	fn abs(&self) -> Calculation<Self>;
 	fn sin(&self) -> Calculation<Self>;
+	fn cos(&self) -> Calculation<Self>;
+	fn tan(&self) -> Calculation<Self>;
+	fn asin(&self) -> Calculation<Self>;
+	fn acos(&self) -> Calculation<Self>;
+	fn atan(&self) -> Calculation<Self>;
+	fn atan2(&self, other: &Self) -> Calculation<Self>;
+	fn floor(&self) -> Calculation<Self>;
+	fn ceil(&self) -> Calculation<Self>;
+	fn round(&self) -> Calculation<Self>;
 }
