@@ -5,9 +5,12 @@ use opers::Calculation;
 use num::Num;
 use answer::Answer;
 
+/// A complex number made of a real `f64` and an imaginary `f64`.
 #[derive(Debug, Clone)]
 pub struct ComplexFloat {
+	/// The real part
 	pub r: f64,
+	/// The imaginary part
 	pub i: f64,
 }
 
@@ -122,6 +125,7 @@ impl Num for ComplexFloat {
 }
 
 impl ComplexFloat {
+	/// Returns the complex conjugate of this number
 	pub fn conjugate(&self) -> Self {
 		ComplexFloat {
 			r: self.r,

@@ -2,13 +2,17 @@ use num::Num;
 use opers::Calculation;
 use std::fmt;
 
+/// An answer of an evalutation. Can be either a single answer or multiple
 #[derive(Debug, Clone)]
 pub enum Answer<N: Num> {
+	/// A single answer
 	Single(N),
+	/// Multiple answers. Will always be at least two (probably)
 	Multiple(Vec<N>),
 }
 
 impl<N: Num> Answer<N> {
+	/// Perform an operation on all the values of an answer with all the values of another answer
 	pub fn op<F: Fn(&N, &N) -> Calculation<N>>(&self, other: &Self, oper: F) -> Calculation<N> {
 		fn push_answers<N: Num>(answer: Answer<N>, list: &mut Vec<N>) {
 			match answer {
@@ -59,6 +63,7 @@ impl<N: Num> Answer<N> {
 		}
 	}
 	
+	/// Perform an operation on all the values of an answer
 	pub fn unop<F: Fn(&N) -> Calculation<N>>(&self, oper: F) -> Calculation<N> {
 		fn push_answers<N: Num>(answer: Answer<N>, list: &mut Vec<N>) {
 			match answer {
@@ -85,6 +90,7 @@ impl<N: Num> Answer<N> {
 		}
 	}
 	
+	/// Unwrap the single variant of an answer
 	pub fn unwrap_single(self) -> N {
 		match self {
 			Answer::Single(n) => n,
@@ -92,6 +98,7 @@ impl<N: Num> Answer<N> {
 		}
 	}
 	
+	/// Convert this answer into a vector
 	pub fn to_vec(self) -> Vec<N> {
 		match self {
 			Answer::Single(n) => vec![n],

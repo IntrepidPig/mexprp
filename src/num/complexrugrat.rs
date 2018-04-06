@@ -7,9 +7,13 @@ use errors::MathError;
 use answer::Answer;
 use num::Num;
 
+/// A complex number made of a real part and an imaginary part, both of which are `rug::Rationals`.
+/// Requires the `rug` feature.
 #[derive(Debug, Clone)]
 pub struct ComplexRugRat {
+	/// The real part
 	pub r: Rational,
+	/// The imaginary part
 	pub i: Rational,
 }
 
@@ -140,6 +144,7 @@ impl Num for ComplexRugRat {
 }
 
 impl ComplexRugRat {
+	/// Returns the complex conjugate of this number
 	pub fn conjugate(&self) -> Self {
 		ComplexRugRat {
 			r: self.r.clone(),

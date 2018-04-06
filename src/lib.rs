@@ -45,7 +45,7 @@
 //! store the context you parse them with, but you have to evaluate `Term`s with a reference to a context
 //! using `Term::eval_ctx`. For more info see the [`context`](context) module.
 
-//#![deny(missing_docs)]
+#![deny(missing_docs)]
 #![cfg_attr(feature = "cargo-clippy", allow(collapsible_if))]
 
 #[macro_use]

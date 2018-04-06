@@ -13,7 +13,7 @@ impl Num for Rational {
 		}))
 	}
 	
-	fn from_f64_complex((r, i): (f64, f64)) -> Calculation<Self> {
+	fn from_f64_complex((r, _i): (f64, f64)) -> Calculation<Self> {
 		Ok(Answer::Single(if let Some(r) = Rational::from_f64(r) {
 			r
 		} else {

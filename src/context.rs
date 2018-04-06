@@ -3,7 +3,6 @@ use std::f64::consts;
 use std::rc::Rc;
 use std::fmt;
 
-use answer::Answer;
 use expr::Term;
 use func::Func;
 use num::Num;
@@ -128,7 +127,7 @@ impl<N: Num> fmt::Debug for Context<N> {
 }
 
 pub(in context) mod funcs {
-	use std::cmp::{Ordering, PartialOrd};
+	use std::cmp::Ordering;
 
 	use context::Context;
 	use expr::Term;
