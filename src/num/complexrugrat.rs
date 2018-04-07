@@ -47,6 +47,10 @@ impl Num for ComplexRugRat {
 		}))
 	}
 	
+	fn typename() -> String {
+		String::from("ComplexRugRat")
+	}
+	
 	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
 		if let Some(ord) = self.partial_cmp(other) {
 			Ok(ord)
@@ -82,77 +86,12 @@ impl Num for ComplexRugRat {
 	
 	fn div(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let conj = other.conjugate();
-		let num = match self.mul(&conj, ctx)? {
-			Answer::Single(n) => n,
-			Answer::Multiple(_) => unreachable!(),
-		};
-		let den = match other.mul(&conj, ctx)? {
-			Answer::Single(n) => n,
-			Answer::Multiple(_) => unreachable!(),
-		};
+		let num = self.mul(&conj, ctx)?.unwrap_single();
+		let den = other.mul(&conj, ctx)?.unwrap_single();
 		let r = Rational::from(&num.r / &den.r);
 		let i = Rational::from(&num.i / &den.r);
 		
 		Ok(Answer::Single(ComplexRugRat { r, i }))
-	}
-	
-	fn pow(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn sqrt(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn nrt(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	fn abs(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn sin(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn cos(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn tan(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn asin(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn acos(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn atan(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn atan2(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn floor(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn ceil(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn round(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn log(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
 	}
 }
 

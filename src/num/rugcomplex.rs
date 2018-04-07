@@ -18,6 +18,10 @@ impl Num for Complex {
 		Ok(Answer::Single(Complex::with_val(ctx.cfg.precision, val)))
 	}
 	
+	fn typename() -> String {
+		String::from("Complex")
+	}
+	
 	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
 		if let Some(ord) = self.real().partial_cmp(other.real()) {
 			Ok(ord)
@@ -66,10 +70,6 @@ impl Num for Complex {
 		})
 	}
 	
-	fn nrt(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
 	fn abs(&self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r = Complex::with_val(ctx.cfg.precision, Complex::abs_ref(self));
 		
@@ -112,22 +112,10 @@ impl Num for Complex {
 		Ok(Answer::Single(r))
 	}
 	
-	fn atan2(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
 	fn floor(&self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r = Complex::with_val(ctx.cfg.precision, Complex::sin_ref(self));
 		
 		Ok(Answer::Single(r))
-	}
-	
-	fn ceil(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
-	}
-	
-	fn round(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
 	}
 	
 	fn log(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {

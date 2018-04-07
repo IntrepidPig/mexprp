@@ -16,6 +16,10 @@ impl Num for f64 {
 		Ok(Answer::Single(r))
 	}
 	
+	fn typename() -> String {
+		String::from("f64")
+	}
+	
 	/// Compares two floats. Errors if either is NaN. Infinity is greater than anything except equal
 	/// to infinity. Negative infinity is less than anything except equal to negative infinity.
 	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
@@ -74,10 +78,6 @@ impl Num for f64 {
 		} else {
 			Answer::Single(sqrt)
 		})
-	}
-	
-	fn nrt(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
-		unimplemented!()
 	}
 	
 	fn abs(&self, ctx: &Context<Self>) -> Calculation<Self> {

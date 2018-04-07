@@ -197,7 +197,7 @@ pub(crate) struct Fact<N: Num> {
 
 impl<N: Num + 'static> Operate<N> for Fact<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
-		unimplemented!()
+		Err(MathError::Unimplemented { op: "Factorial".to_string(), num_type: "Any".to_string() })
 	}
 
 	fn to_string(&self) -> String {

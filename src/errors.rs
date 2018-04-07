@@ -45,6 +45,14 @@ pub enum MathError {
 	/// Tried to compare a value that can't be compared (eg NaN, Infinity, etc.)
 	#[fail(display = "Tried to compare a value that can't be compared (eg NaN, Infinity, etc.)")]
 	CmpError,
+	/// Attempted an operation on a Number that wasn't implemented for that type
+	#[fail(display = "The operation '{}' is not supported for the type {}", op, num_type)]
+	Unimplemented {
+		/// The name of the operation that was attempted
+		op: String,
+		/// The type of number it was attempted for
+		num_type: String,
+	},
 	/// Another type of Error occurred.
 	#[fail(display = "An unknown error occurred during evaluation")]
 	Other,
