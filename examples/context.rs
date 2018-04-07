@@ -24,7 +24,7 @@ fn main() {
 		let mut sum = Answer::Single(0.0);
 		for arg in args {
 			let b = arg.eval_ctx(ctx)?;
-			sum = sum.op(&b, |a, b| Num::add(a, b))?;
+			sum = sum.op(&b, |a, b| Num::add(a, b, ctx))?;
 		}
 
 		Ok(sum)

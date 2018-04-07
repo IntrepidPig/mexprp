@@ -58,7 +58,7 @@ fn funcs() {
 		let mut x = Answer::Single(0.0);
 		for arg in args {
 			let a = arg.eval_ctx(ctx)?;
-			x = x.op(&a, |a, b| Num::add(a, b))?;
+			x = x.op(&a, |a, b| Num::add(a, b, ctx))?;
 		}
 		Ok(x)
 	});
@@ -66,6 +66,13 @@ fn funcs() {
 	assert!(eq(expr.eval().unwrap().unwrap_single(), 5.0));
 }
 
-fn eq<N: Num>(x: N, y: f64) -> bool {
-	x.sub(&N::from_f64(y).unwrap().unwrap_single()).unwrap().unwrap_single().abs().unwrap().unwrap_single().lt(&N::from_f64(0.00001).unwrap().unwrap_single())
+fn eq<N: Num + 'static>(x: N, y: f64) -> bool {
+	use std::cmp::Ordering;
+	let ctx = &Context::empty();
+	x.sub(&N::from_f64(y, ctx).unwrap().unwrap_single(), ctx)
+			.unwrap().unwrap_single()
+			.abs(ctx).unwrap().unwrap_single()
+			.tryord(&N::from_f64(0.00001, ctx).unwrap().unwrap_single(), ctx)
+			.unwrap()
+			== Ordering::Less
 }
