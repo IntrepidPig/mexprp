@@ -67,7 +67,7 @@ MEXPRP supports evaluating expressions with different precisions and complex num
 
 However, the implementation for certain types is incomplete. Only the `f64` type fully implements all of the operations. `Complex` is the next best, but even it is still missing some. The others only implement a (small) subset of the functionality of the `Num` trait, and return a `MathError::Unimplemented` when an unsupported operation is attempted. It is hopeful that more functions will be implemented in the future, but some are very difficult to implement for arbitrary precision or rational numbers.
 
-For more info on the types, see the documentation for the [`num`](num) module. To see progress on implementations for numbers, see GitHub [issues](https://github.com/IntrepidPig/mexprp/issues?q=is%3Aopen+is%3Aissue+label%3Anumber) with the `number` label.
+For more info on the types, see the documentation for the `num` module. To see progress on implementations for numbers, see GitHub [issues](https://github.com/IntrepidPig/mexprp/issues?q=is%3Aopen+is%3Aissue+label%3Anumber) with the `number` label.
 
 To use another number type, change the type annotation(s) for your MEXPRP types.
 ```rust
