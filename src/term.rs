@@ -54,7 +54,11 @@ impl<N: Num + 'static> Term<N> {
 		let raw = raw.trim();
 		let paren_tokens = get_tokens(raw)?;
 		let exprs = paren_to_exprs(paren_tokens, ctx)?;
-		let exprs = insert_operators(exprs);
+		let exprs = if ctx.cfg.implicit_multiplication {
+			insert_operators(exprs)
+		} else {
+			exprs
+		};
 		let postfix = tokenexprs_to_postfix(exprs);
 		let term = postfix_to_term(postfix, ctx)?;
 		

@@ -68,7 +68,12 @@ impl Num for f64 {
 	
 	fn sqrt(&self, ctx: &Context<Self>) -> Calculation<Self> {
 		let sqrt = f64::sqrt(*self);
-		Ok(Answer::Multiple(vec![sqrt, -sqrt]))
+		
+		Ok(if ctx.cfg.sqrt_both {
+			Answer::Multiple(vec![sqrt, -sqrt])
+		} else {
+			Answer::Single(sqrt)
+		})
 	}
 	
 	fn nrt(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {

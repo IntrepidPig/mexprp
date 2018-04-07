@@ -85,6 +85,8 @@ pub struct Config {
 	pub implicit_multiplication: bool,
 	/// The precision to be used for arbitrary precision floating point numbers (default = 53)
 	pub precision: u32,
+	/// Whether or not sqrt should return the positive and negative values
+	pub sqrt_both: bool,
 }
 
 impl<N: Num + 'static> Context<N> {
@@ -135,6 +137,7 @@ impl Config {
 		Config {
 			implicit_multiplication: true,
 			precision: 53,
+			sqrt_both: true,
 		}
 	}
 }

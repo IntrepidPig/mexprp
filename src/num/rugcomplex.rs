@@ -59,7 +59,11 @@ impl Num for Complex {
 	fn sqrt(&self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r = Complex::with_val(ctx.cfg.precision, Complex::sqrt_ref(self));
 		
-		Ok(Answer::Single(r))
+		Ok(if ctx.cfg.sqrt_both {
+			Answer::Multiple(vec![r.clone(), -r])
+		} else {
+			Answer::Single(r)
+		})
 	}
 	
 	fn nrt(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
