@@ -2,7 +2,12 @@ use num::Num;
 use opers::Calculation;
 use std::fmt;
 
-/// An answer of an evalutation. Can be either a single answer or multiple
+/// An answer of an evaluatation. Can be either a single answer or multiple. This struct contains some
+/// helper methods for performing operations on single or multiple answers. The `op` method takes another
+/// `Num`, and a function with two `Num` arguments, itself and the other (as references). It performs
+/// that function on all combinations and returns an answer with all of the results in one. The `unop`
+/// function is similar but it performs an operation on only itself, without another value (*un*ary
+/// *op*eration).
 #[derive(Debug, Clone, PartialEq)]
 pub enum Answer<N: Num> {
 	/// A single answer

@@ -26,35 +26,43 @@ use num::Num;
 /// can pass in just an `f64` if you want.
 ///
 /// ```rust
-/// # use mexprp::{Expression, Context};
-/// let mut context = Context::new();
+/// # use mexprp::{Expression, Context, Answer};
+/// let mut context: Context<f64> = Context::new();
 /// context.set_var("x", 4.0);
 /// let expr = Expression::parse_ctx("4x", context).unwrap();
-/// let res = expr.eval(); // Ok(16.0)
-/// # assert_eq!(res.unwrap(), 16.0);
+/// let res = expr.eval(); // Ok(Answer::Single(16.0))
+/// # assert_eq!(res.unwrap(), Answer::Single(16.0));
 /// ```
 ///
-/// A custom function is anything that implements the [`func::Func`](func::Func) trait. There's a
+/// A custom function is anything that implements the [`func::Func`](::func::Func) trait. There's a
 /// blanket impl of this trait allowing you to pass in any closure with the signature
-/// `Fn(&[Term], &Context) -> Calculation`. You can also pass in a struct that implements `Func` manually
+/// `Fn(&[Term<Num>], &Context<Num>) -> Calculation<Num>`. You can also pass in a struct that implements `Func` manually
 /// if you want more flexibility. The `Func` trait is just one method with the same signature previously
 /// mentioned. Defining a custom function will most often look like this.
 ///
 /// ```rust
-/// # use mexprp::{Expression, Context, Term, Calculation, MathError};
-/// let mut context = Context::new();
-/// context.set_func("sum", |args: &[Term], ctx: &Context| -> Calculation {
+/// # use mexprp::{Expression, Context, Term, Calculation, MathError, Answer};
+/// let mut context: Context<f64> = Context::new();
+/// context.set_func("sum", |args: &[Term<f64>], ctx: &Context<f64>| -> Calculation<f64> {
 ///     if args.is_empty() { return Err(MathError::IncorrectArguments) }
 ///
 ///     let mut sum = 0.0;
 ///     for arg in args {
-///         sum += arg.eval_ctx(ctx)?;
+///         let a = arg.eval_ctx(ctx)?;
+///         match a {
+///             Answer::Single(n) => sum += n,
+///             Answer::Multiple(ns) => {
+///                 for n in ns {
+///                     sum += n;
+///                 }
+///             }
+///         }
 ///     }
-///     Ok(sum)
+///     Ok(Answer::Single(sum))
 /// });
 /// let expr = Expression::parse_ctx("sum(5, 6, 7, 8)", context).unwrap();
-/// let res = expr.eval(); // Ok(26.0)
-/// # assert_eq!(res.unwrap(), 26.0);
+/// let res = expr.eval(); // Ok(Answer::Single(26.0))
+/// # assert_eq!(res.unwrap(), Answer::Single(26.0));
 /// ```
 ///
 /// The first argument of a custom function definition is a slice of `Term`s, which are the arguments

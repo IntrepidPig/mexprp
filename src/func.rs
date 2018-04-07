@@ -6,7 +6,7 @@ use num::Num;
 /// Implemented by functions defined in a context
 pub trait Func<N: Num> {
 	/// Evaluate the function in this context with the given arguments. When implementing,
-	/// simply evaluate the arguments with the context and return an Err(MathError::IncorrectArguments)
+	/// simply evaluate the arguments with the context and return an `Err(MathError::IncorrectArguments)`
 	/// if there are too many or too few.
 	fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> ;
 }
