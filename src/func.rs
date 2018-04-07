@@ -1,4 +1,4 @@
-use expr::Term;
+use term::Term;
 use context::Context;
 use opers::Calculation;
 use num::Num;

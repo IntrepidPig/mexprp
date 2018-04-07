@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 
-use expr::Term;
+use term::Term;
 use context::Context;
 use errors::MathError;
 use num::Num;

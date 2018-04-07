@@ -3,7 +3,7 @@ use std::f64::consts;
 use std::rc::Rc;
 use std::fmt;
 
-use expr::Term;
+use term::Term;
 use func::Func;
 use num::Num;
 
@@ -138,7 +138,7 @@ pub(in context) mod funcs {
 	use std::cmp::Ordering;
 
 	use context::Context;
-	use expr::Term;
+	use term::Term;
 	use errors::MathError;
 	use func::Func;
 	use opers::Calculation;

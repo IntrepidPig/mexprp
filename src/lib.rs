@@ -115,11 +115,13 @@ extern crate rug;
 /// Contains Function trait
 pub mod func;
 /// Contains methods for parsing equations into token representations
-pub mod parse;
+mod parse;
 /// Contains definitions for Operations
-pub mod op;
-/// Contains expressions and terms
+mod op;
+/// Contains expressions
 pub mod expr;
+/// Contains terms
+mod term;
 /// Contains implementations for operations
 pub mod opers;
 /// All the errors
@@ -134,7 +136,8 @@ pub mod answer;
 mod tests;
 
 pub use func::Func;
-pub use expr::{Expression, Term};
+pub use expr::Expression;
+pub use term::Term;
 pub use context::Context;
 pub use errors::{EvalError, MathError, ParseError};
 pub use num::Num;
