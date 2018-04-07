@@ -1,3 +1,35 @@
+//! This module contains the `Num` trait and its implementations.
+//!
+//! The `Num` trait defines the inner workings of this library. Any type that implements the `Num` trait
+//! can be used to represent a number in an equation. There are currently five predefined implementors
+//! of the `Num` trait, but that number is subject to change (with additions and removals). You can also
+//! define your own `Num`, but hopefully a fitting one already exists for you here.
+//!
+//! The five nums are:
+//! - `f64`
+//! - `ComplexFloat`
+//! - `ComplexRugRat`
+//! - `rug::Complex`
+//! - `rug::Rational`
+//!
+//! Each have different strengths and weaknesses.
+//!
+//! `f64` implements all functions, but suffers the limitations `f64`s usually suffer from (low precision,
+//!  NaN/infinity errors, etc).
+//!
+//! `ComplexFloat` is just two `f64`s representing a real part and an imaginary part, but doesn't
+//! support nearly as many operations as `f64`.
+//!
+//! `ComplexRugRat` is two `rug::Rationals` representing a real and an imaginary part. This supports
+//! even fewer operations than `ComplexFloat`.
+//!
+//! `rug::Complex` is the next best after `f64`. It's a complex multiple precision floating point
+//! number. It's precision can be defined in the `Context` and equation is parsed an evaluated with.
+//!
+//! `rug::Rational` is just a rational number, and also supports very few operations.
+//!
+//! To see the progress on implementations of `Num` types, see the the [`issues on GitHub`](https://github.com/IntrepidPig/mexprp/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Anumber)
+//! with the label "number"
 
 use std::fmt;
 use std::marker::Sized;

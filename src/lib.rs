@@ -3,7 +3,7 @@
 //!
 //! ## Features
 //! - `f64` precision
-//! - multiple/arbitrary precision (very incomplete)
+//! - multiple/arbitrary precision (somewhat incomplete)
 //! - low dependencies
 //! - custom variable contexts
 //! - custom function contexts
@@ -11,7 +11,7 @@
 //! - implicit multiplication
 //! - utf8-ready
 //! - support for multiple solutions
-//! - complex numbers (very incomplete)
+//! - complex numbers (somewhat incomplete)
 //!
 //! ## Usage
 //! There are three different ways to parse and evaluate an equation.
@@ -68,16 +68,16 @@
 //! - [`ComplexFloat`](num::ComplexFloat)
 //! - [`ComplexRugRat`](num::ComplexRugRat) (using the rug crate)
 //! - [`Rational`](::rug::Rational) (from the rug crate)
+//! - [`Complex`](::rug::Complex) (from the rug crate)
 //!
 //! However, the implementation for certain types is incomplete. Only the `f64` type fully implements
-//! all of the operations. The others only implement a (small) subset of the functionality of the `Num`
-//! trait, and return a `MathError::Unimplemented` when an unsupported operation is attempted. It is
-//! hopeful that more functions will be implemented in the future, but some are extremely difficult
-//! to implement for arbitrary precision numbers. `rug::Float` will probably become a `Num` soon to
-//! allow for arbitrary precision numbers with more available operations, as soon as the design decision
-//! of how to choose a precision is made. Most likely a configuration field will be added to the `Context`
-//! struct which will include fields like the precision to use and whether to enable implicit multiplication
-//! or not.
+//! all of the operations. `Complex` is the next best, but even it is still missing some. The others
+//! only implement a (small) subset of the functionality of the `Num` trait, and return a
+//! `MathError::Unimplemented` when an unsupported operation is attempted. It is
+//! hopeful that more functions will be implemented in the future, but some are very difficult
+//! to implement for arbitrary precision numbers.
+//!
+//! For more info on the types, see the documentation for the [`num`](num) module.
 //!
 //! To use another number type, change the type annotation(s) for your MEXPRP types.
 //! ```rust
