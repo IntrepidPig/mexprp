@@ -9,12 +9,9 @@ use num::Num;
 
 /// A context holds values for variables and functions to be used in expressions. It is useful for both
 /// parsing and evaluation expressions. During parsing, all names will be treated as variables unless
-/// present in the Context the expression is being parsed with as functions at the time.
-///
-/// Internally, a context is just two HashMaps, one for variables and one for functions. The only thing
-/// truly special about it (for now at least) is the default value when calling new(). This Context contains
-/// all basic functions and values expected to be included such as sin(), cos(), sqrt(), pi, etc. This
-/// is the Context all expressions are parsed and evaluated with if no other one is present.
+/// present in the Context the expression is being parsed with as functions at the time. The default
+/// context (created with `new()`) contains basic functions and constants such as `sin`, `pi`, etc,
+/// as well as the default configuration.
 ///
 /// Contexts are used differently with `Term`s and `Expression`s. With `Term`s, more decisions are left
 /// up to the user. `Term`s can be parsed with a reference to a context and evaluated with a reference
