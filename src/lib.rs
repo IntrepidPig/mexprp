@@ -10,7 +10,7 @@
 //! - builtin constants and functions (eg pi, sin, max)
 //! - implicit multiplication
 //! - utf8-ready
-//! - support for multiple solutions
+//! - support for multiple answers
 //! - complex numbers (somewhat incomplete)
 //!
 //! ## Usage
@@ -57,7 +57,7 @@
 //! Evaluating an expression will return an [`Answer`](answer::Answer) enum. An answer represents either
 //! a single value, or multiple. The most notable example of an operation that results in multiple
 //! answers is `sqrt()` which returns a positive and negative answer. Another obvious example is the
-//! '±' operator. When implementing functions, it's important to handle each answer type when evaluating
+//! `±` operator. When implementing functions, it's important to handle each answer type when evaluating
 //! the arguments. More info about that and helper methods for it can be found in the documentation
 //! for the `Answer` enum.
 //!
@@ -77,6 +77,9 @@
 //! hopeful that more functions will be implemented in the future, but some are very difficult
 //! to implement for arbitrary precision numbers.
 //!
+//! The `Complex` number also supports selecting the precision to use with a `Context`. Set the `precision`
+//! field of the `cfg` field of a Context to set the precision to be used by `Complex` numbers.
+//!
 //! For more info on the types, see the documentation for the [`num`](num) module.
 //!
 //! To use another number type, change the type annotation(s) for your MEXPRP types.
@@ -95,7 +98,9 @@
 //! let res = expr.eval(); // 30 + 15i
 //! ```
 //!
-//! In case you don't want a dependency on `rug`, compile the MEXPRP without the `"rug"` feature.
+//! To set the precision of types that let you choose it (currently just
+//!
+//! In case you don't want a dependency on `rug`, compile MEXPRP without the `"rug"` feature.
 //!
 //! ### Using Contexts
 //! You can evaluate expressions with custom variable and function definition's by defining a context.
@@ -103,6 +108,11 @@
 //! context, or else the parser will recognize your functions as variables instead. `Expression`s will
 //! store the context you parse them with, but you have to evaluate `Term`s with a reference to a context
 //! using `Term::eval_ctx`. For more info see the [`Context`](context::Context) struct.
+//!
+//! A `Context` also holds configuration values that define how MEXPRP parses and evaluates equations.
+//! These configuration values include enabling/disabling implicit multiplication, the precision to
+//! use for types that support selecting precisions (just `Complex` for now), and the behaviour of
+//! the `sqrt()` function. More info can be found in the API docs (check the [`context`](context) module).
 
 #![deny(missing_docs)]
 #![cfg_attr(feature = "cargo-clippy", allow(collapsible_if))]
@@ -113,32 +123,32 @@ extern crate failure;
 extern crate rug;
 
 /// Contains Function trait
-pub mod func;
+mod func;
 /// Contains methods for parsing equations into token representations
 mod parse;
 /// Contains definitions for Operations
 mod op;
 /// Contains expressions
-pub mod expr;
+mod expr;
 /// Contains terms
 mod term;
 /// Contains implementations for operations
-pub mod opers;
+mod opers;
 /// All the errors
 pub mod errors;
 /// Context struct
-pub mod context;
+mod context;
 /// Number representation(s)
 pub mod num;
 /// Answer enum
-pub mod answer;
+mod answer;
 #[cfg(test)]
 mod tests;
 
 pub use func::Func;
 pub use expr::Expression;
 pub use term::Term;
-pub use context::Context;
+pub use context::{Context, Config};
 pub use errors::{EvalError, MathError, ParseError};
 pub use num::Num;
 pub use opers::Calculation;

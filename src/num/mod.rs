@@ -28,7 +28,7 @@
 //!
 //! `rug::Rational` is just a rational number, and also supports very few operations.
 //!
-//! To see the progress on implementations of `Num` types, see the the [`issues on GitHub`](https://github.com/IntrepidPig/mexprp/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Anumber)
+//! To see the progress on implementations of `Num` types, see the the [issues on GitHub](https://github.com/IntrepidPig/mexprp/issues?utf8=%E2%9C%93&q=is%3Aissue+is%3Aopen+label%3Anumber)
 //! with the label "number"
 
 use std::fmt;

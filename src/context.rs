@@ -68,6 +68,27 @@ use num::Num;
 /// to the `Context` you received with `Term::eval_ctx()`. If the function is given arguments in an
 /// incorrect way, return a `MathError::IncorrectArguments`. If any errors occur during evaluation, you
 /// can try to find a `MathError` variant that fits or return `MathError::Other`.
+///
+/// ## Builtin
+/// ### Constants
+/// - pi
+/// - e
+/// - i
+///
+/// ### Functions
+/// - sin
+/// - cos
+/// - tan
+/// - asin
+/// - acos
+/// - atan
+/// - atant (atan2)
+/// - floor
+/// - ceil
+/// - round
+/// - sqrt
+/// - max
+/// - min
 #[derive(Clone)]
 pub struct Context<N: Num> {
 	/// HashMap of variables

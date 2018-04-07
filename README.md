@@ -5,102 +5,87 @@
 ![License](https://img.shields.io/crates/l/mexprp.svg)
 
 
-A math expression parsing and evaluation library for Rust with the goal of being simple to use, yet powerful.
+A math expression parsing and evaluation library for Rust
 
 [API docs here](https://docs.rs/mexprp). Also see the `examples/` directory.
 
 ### Motivation 
 
-The main reason I wrote MEXPRP was for a 3D equation grapher I've been working on ([vgraph](https://github.com/intrepidpig/vgraph)). Of course, I could've used an existing Rust expression parser, but the only other one was a `0.1.0` library that had what I considered I somewhat strange API. Also, for some reason I've been kind of interested in keeping the dependencies down for the 3D equation grapher I was talking about. Anyway, now there's [at least two](https://xkcd.com/927/) `0.x` Rust math expression libraries with API's that can be considered strange.
+The main reason I wrote MEXPRP was for a 3D equation grapher I've been working on ([vgraph](https://github.com/intrepidpig/vgraph)). I can't really say why I didn't choose any existing libraries other than because I wanted a learning experience, and because I wanted flexibility. I'm glad to say I learned a lot from this project, and it's also quite flexible.
 
-### Features
-
+## Features
 - `f64` precision
-- Custom variable contexts
-- Custom function contexts
-- Builtin constants and functions
-- Implicit multiplication
-- Low dependencies (just failure)
-- Easy to use
-- UTF-8 ready
+- multiple/arbitrary precision (somewhat incomplete)
+- low dependencies
+- custom variable contexts
+- custom function contexts
+- builtin constants and functions (eg pi, sin, max)
+- implicit multiplication
+- utf8-ready
+- support for multiple answers
+- complex numbers (somewhat incomplete)
 
-### Usage
+## Usage
+There are several different ways to parse and evaluate an equation.
 
-The simplest, but not always the most efficient, way to use MEXPRP is with `mexprp::eval()`. This function takes a `&str` as an argument, parses it, and evaluates it. E.g. like this:
-
-```rust
-mexprp::eval("(2 + 7) / 3")? // 3.0
-```
-
-MEXPRP also supports some functions and constants.
+ #### With `eval()`
+This function parses and evaluates a string all at once with the default context. There's also an `eval_ctx()` function which takes a reference to a `Context` as well that will be used instead of the default `Context`. The type parameter can be anything that implements the `Num` trait. Some `Num` types support more operations than others. More info about `Num`s can be found in the `Num` module.
 
 ```rust
-mexprp::eval("sin(max(2, 3, pi))")? // 0.0
+mexprp::eval::<f64>("10 / (2 + 3)"); // Ok(Answer::Single(2.0))
 ```
 
-A "better" way to evaluate an expression is to compile it first, with the `Expression` struct. This has the advantage of retaining a completely parsed and organized instance of an expression for faster evaluation.
+#### With `Expression`
+`Expression::parse()` parses a string into a tree representation (a `Term`). It can also be parsed with a context with `parse_ctx()`, and it will store that context within it for future evaluations. It can also be evaluated with a reference to any other context with `eval_ctx`. It's important to ensure that the custom context contains any definitions the `Expression` depends on.
 
 ```rust
-let expr = Expression::parse("3 ^ (4 - 1)")?;
-expr.eval()? // 27.0
+let expr: Expression<f64> = Expression::parse("3 ^ 4 / 9").unwrap();
+let res = expr.eval(); // Ok(Answer::Single(9.0))
 ```
 
-But what's the point of being able to evaluate the same expression over and over again? Well, you can evaluate expressions with variables set to a specific value by evaluating it with a context.
+#### Using Contexts
+You can evaluate expressions with custom variable and function definition's by defining a context. When defining custom functions, it's important to remember to parse the expression with the custom context, or else the parser will recognize your functions as variables instead. One way to bypass this is by disabling implicit multiplication in the context used for parsing, which will then parse all names followed by parentheses as functions, regardless of whether they are defined in the `Context`.
+
+A `Context` also holds configuration values that define how MEXPRP parses and evaluates equations. These configuration values include enabling/disabling implicit multiplication, the precision to use for types that support selecting precisions (just `Complex` for now), and the behaviour of the `sqrt()` function. More info can be found in the API docs (check the `context` module).
 
 ```rust
-let expr = Expression::parse("3x / 6")?;
-let mut ctx = Context::new();
-ctx.set_var("x", 8.0);
-expr.eval_ctx(&ctx)?; // 4.0
-ctx.set_var("x", 10.0);
-expr.eval_ctx(&ctx)?; // 5.0
+let mut context: Context<f64> = Context::new();
+context.set_var("x", 4.0);
+let expr = Expression::parse_ctx("4x", context).unwrap();
+let res = expr.eval(); // Ok(Answer::Single(16.0))
 ```
 
-It's also possible to define custom functions. When defining custom functions, you should be aware of a minor drawback. Expressions need to be parsed with the custom context containing the custom function definitions in order for them to recognized as functions instead of variables during parsing. The reason for this is that without a list of functions present at parse time, the parser has no way to know if a name in the expression is a variable or a function. For example, in `foo(3 + 5)`, `foo` could be a function called with one argument, or a variable multiplied by `(3 + 5)`. The parser will assume the latter.
+For a list of builtin functions/constants in `Context`s, see the API docs for the `Context` struct. 
 
-In order to bypass this, simply create a context before parsing the expression, then use `Expression::parse_ctx()` to parse the expression. The expression will store the context and calling eval on the expression will use it. You can modify the context by accessing the `ctx` field of the epxression. You can also evaluate the expression with other contexts with the `eval_ctx()` function. If you don't wan't to store the context, use a `Term` instead.
+### Multiple Precisions
+MEXPRP supports evaluating expressions with different precisions and complex numbers with the [`Num`](num::Num) trait. Currently supported number types are
+- `f64`
+- [`ComplexFloat`](num::ComplexFloat)
+- [`ComplexRugRat`](num::ComplexRugRat) (using the rug crate)
+- [`Rational`](::rug::Rational) (from the rug crate)
+- [`Complex`](::rug::Complex) (from the rug crate)
 
-There are two ways to define a function. A function is anything that implements the `func::Func` trait. There is a blanket `impl` of this trait for all `Fn(&[Term], &Context) -> Calculation`, allowing you to pass in a closure. You can also pass in an empty struct that you implement `Func` for manually, which is no harder then writing it as a closure, but can be more flexible. The `Func` trait consists of one method, with the signature `fn(args: &[Term], ctx: &Context) -> Calculation`. (A `Term` is just an `Expression` without the metadata.) In case the arguments given were not properly formatted (e.g. there was an incorrect amount given), you can just return `Err(MathError::IncorrectArguments)`.
+However, the implementation for certain types is incomplete. Only the `f64` type fully implements all of the operations. `Complex` is the next best, but even it is still missing some. The others only implement a (small) subset of the functionality of the `Num` trait, and return a `MathError::Unimplemented` when an unsupported operation is attempted. It is hopeful that more functions will be implemented in the future, but some are very difficult to implement for arbitrary precision or rational numbers.
+
+For more info on the types, see the documentation for the [`num`](num) module. To see progress on implementations for numbers, see GitHub [issues](https://github.com/IntrepidPig/mexprp/issues?q=is%3Aopen+is%3Aissue+label%3Anumber) with the `number` label.
+
+To use another number type, change the type annotation(s) for your MEXPRP types.
+```rust
+extern crate rug;
+use rug::Rational;
+mexprp::eval::<Rational>("10/15"); // 2/3
+```
 
 ```rust
-let mut ctx = Context::new();
-ctx.set_func("funca", |args: &[Term], ctx: &Context| -> Calculation {
-	if args.len() != 2 { return Err(MathError::IncorrectArguments) }
-	
-	let a = args[0].eval_ctx(ctx)?;
-	let b = args[1].eval_ctx(ctx)?;
-	Ok(a + b)
-});
-
-struct FuncB;
-impl Func for FuncB {
-	fn eval(&self, args: &[Term], ctx: &Context) -> Calculation {
-		if args.is_empty() { return Err(MathError::IncorrectArguments) }
-		
-		let mut sum = 0.0;
-		for arg in args {
-			sum += arg.eval_ctx(ctx)?;
-		}
-		Ok(sum)
-	}
-}
-ctx.set_func("funcb", FuncB);
-
-let mut expr = Expression::parse_ctx("funca(5, funcb(3, 4, 3))", ctx)?;
-expr.eval()?; // 15.0
-
-expr.ctx.set_func("funca", |args: &[Term], ctx: &Context| -> Calculation {
-	if args.len() != 2 { return Err(MathError::IncorrectArguments) }
-	
-	let a = args[0].eval_ctx(ctx)?;
-	let b = args[1].eval_ctx(ctx)?;
-	Ok(a - b)
-});
-
-expr.eval()?; // -5.0
-
-Ok(())
+extern crate rug;
+use rug::Complex;
+mexprp::eval::<Complex>("(2+3i)(2-3i)"); // 23 + 2i
 ```
+
+### Multiple Answers
+Any evaluation of an expression in MEXPRP returns an `Answer`. An answer is a simple enum that is either `Single(N)` or `Multiple(Vec<N>)` where N is the type of number this expression is using. This represents answers to operations that possibly yield multiple values such as `sqrt()` or the `±` operator. If you know the result of an expression will be just one answer, you can use the `unwrap_single()` method of answer to get that one answer.
+
+Be sure to check the [API docs](https://docs.rs/mexprp) for more in depth explanations of usage.
 
 ### License
 
