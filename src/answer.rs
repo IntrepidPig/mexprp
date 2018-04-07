@@ -3,7 +3,7 @@ use opers::Calculation;
 use std::fmt;
 
 /// An answer of an evalutation. Can be either a single answer or multiple
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Answer<N: Num> {
 	/// A single answer
 	Single(N),
