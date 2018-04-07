@@ -75,7 +75,7 @@ pub struct Context<N: Num> {
 	/// HashMap of functions
 	pub funcs: HashMap<String, Rc<Func<N>>>,
 	/// The configuration used when evaluating expressions
-	pub config: Config,
+	pub cfg: Config,
 }
 
 /// Struct that holds configuration values used when evaluating expressions
@@ -92,15 +92,13 @@ impl<N: Num + 'static> Context<N> {
 	pub fn new() -> Self {
 		use self::funcs::*;
 
-		let mut ctx: Context<N> = Context {
-			vars: HashMap::new(),
-			funcs: HashMap::new(),
-			config: Config::new(),
-		};
+		let mut ctx: Context<N> = Context::empty();
+		
+		let empty = Context::empty();
 
-		ctx.set_var("pi", N::from_f64(consts::PI).unwrap());
-		ctx.set_var("e", N::from_f64(consts::E).unwrap());
-		ctx.set_var("i", N::from_f64_complex((0.0, 1.0)).unwrap());
+		ctx.set_var("pi", N::from_f64(consts::PI, &empty).unwrap());
+		ctx.set_var("e", N::from_f64(consts::E, &empty).unwrap());
+		ctx.set_var("i", N::from_f64_complex((0.0, 1.0), &empty).unwrap());
 
 		ctx.funcs.insert("sin".to_string(), Rc::new(Sin));
 		ctx.funcs.insert("cos".to_string(), Rc::new(Cos));
@@ -119,6 +117,15 @@ impl<N: Num + 'static> Context<N> {
 	/// Add a function definition to the context, replacing any existing one with the same name
 	pub fn set_func<F: Func<N> + 'static>(&mut self, name: &str, func: F) {
 		self.funcs.insert(name.to_string(), Rc::new(func));
+	}
+	
+	/// Creates an empty `Context` with the default config
+	pub fn empty() -> Self {
+		Context {
+			vars: HashMap::new(),
+			funcs: HashMap::new(),
+			cfg: Config::new(),
+		}
 	}
 }
 
@@ -179,7 +186,7 @@ pub(in context) mod funcs {
 			
 			let a = args[0].eval_ctx(ctx)?;
 			
-			a.unop(|a| Num::sin(a))
+			a.unop(|a| Num::sin(a, ctx))
 		}
 	}
 	
@@ -192,7 +199,7 @@ pub(in context) mod funcs {
 			
 			let a = args[0].eval_ctx(ctx)?;
 			
-			a.unop(|a| Num::cos(a))
+			a.unop(|a| Num::cos(a, ctx))
 		}
 	}
 	
@@ -224,7 +231,7 @@ pub(in context) mod funcs {
 			}
 			// For every argument as well as the extraneous solutions from the first one
 			for arg in new_args[1..new_args.len()].iter().chain(extra.iter()) {
-				if Num::tryord(arg, &max)? == Ordering::Greater {
+				if Num::tryord(arg, &max, ctx)? == Ordering::Greater {
 					max = arg.clone();
 				}
 			}
@@ -260,7 +267,7 @@ pub(in context) mod funcs {
 			}
 			// For every argument as well as the extraneous solutions from the first one
 			for arg in new_args[1..new_args.len()].iter().chain(extra.iter()) {
-				if Num::tryord(arg, &min)? == Ordering::Less {
+				if Num::tryord(arg, &min, ctx)? == Ordering::Less {
 					min = arg.clone();
 				}
 			}
@@ -277,7 +284,7 @@ pub(in context) mod funcs {
 			
 			let a = args[0].eval_ctx(ctx)?;
 
-			a.unop(|a| Num::sqrt(a))
+			a.unop(|a| Num::sqrt(a, ctx))
 		}
 	}
 }

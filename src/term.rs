@@ -56,7 +56,7 @@ impl<N: Num + 'static> Term<N> {
 		let exprs = paren_to_exprs(paren_tokens, ctx)?;
 		let exprs = insert_operators(exprs);
 		let postfix = tokenexprs_to_postfix(exprs);
-		let term = postfix_to_term(postfix)?;
+		let term = postfix_to_term(postfix, ctx)?;
 		
 		Ok(term)
 	}
@@ -306,11 +306,11 @@ fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
 }
 
 /// Parse a postfix token stream into a single term
-fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>) -> Result<Term<N>, ParseError> {
+fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>, ctx: &Context<N>) -> Result<Term<N>, ParseError> {
 	let mut stack = Vec::new();
 	for texpr in raw {
 		match texpr {
-			Expr::Num(num) => stack.push(Term::Num(N::from_f64(num).unwrap())), // Put num on the stack
+			Expr::Num(num) => stack.push(Term::Num(N::from_f64(num, ctx).unwrap())), // Put num on the stack
 			Expr::Op(op) => {
 				// Push the operation with the last two operands on the stack
 				macro_rules! pop {
@@ -360,7 +360,7 @@ fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>) -> Result<Term<N>, ParseErr
 			}
 			Expr::Sub(texprs) => {
 				// Put subexpression on the stack
-				stack.push(postfix_to_term(texprs)?);
+				stack.push(postfix_to_term(texprs, ctx)?);
 			}
 			Expr::Var(name) => stack.push(Term::Var(name)), // Put var on the stack
 			Expr::Func(name, args) => {
@@ -368,7 +368,7 @@ fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>) -> Result<Term<N>, ParseErr
 				stack.push(Term::Function(name, {
 					let mut new = Vec::new();
 					for texprs in args {
-						new.push(postfix_to_term(texprs)?);
+						new.push(postfix_to_term(texprs, ctx)?);
 					}
 					new
 				}));

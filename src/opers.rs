@@ -28,7 +28,7 @@ impl<N: Num + 'static> Operate<N> for Add<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.op(&b, |a, b| a.add(b))
+		a.op(&b, |a, b| a.add(b, ctx))
 	}
 
 	fn to_string(&self) -> String {
@@ -47,7 +47,7 @@ impl<N: Num + 'static> Operate<N> for Sub<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.op(&b, |a, b| a.sub(b))
+		a.op(&b, |a, b| a.sub(b, ctx))
 	}
 
 	fn to_string(&self) -> String {
@@ -66,7 +66,7 @@ impl<N: Num + 'static> Operate<N> for Mul<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.op(&b, |a, b| a.mul(b))
+		a.op(&b, |a, b| a.mul(b, ctx))
 	}
 
 	fn to_string(&self) -> String {
@@ -85,7 +85,7 @@ impl<N: Num + 'static> Operate<N> for Div<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.op(&b, |a, b| a.div(b))
+		a.op(&b, |a, b| a.div(b, ctx))
 	}
 
 	fn to_string(&self) -> String {
@@ -104,7 +104,7 @@ impl<N: Num + 'static> Operate<N> for Pow<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
 		
-		a.op(&b, |a, b| a.pow(b))
+		a.op(&b, |a, b| a.pow(b, ctx))
 	}
 
 	fn to_string(&self) -> String {
@@ -121,7 +121,7 @@ impl<N: Num + 'static> Operate<N> for Neg<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		
-		a.op(&N::from_f64(-1.0)?, |a, b| a.mul(b))
+		a.op(&N::from_f64(-1.0, ctx)?, |a, b| a.mul(b, ctx))
 	}
 
 	fn to_string(&self) -> String {
@@ -170,7 +170,7 @@ impl<N: Num + 'static> Operate<N> for Percent<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		
-		a.op(&N::from_f64(-0.01)?, |a, b| a.mul(b))
+		a.op(&N::from_f64(-0.01, ctx)?, |a, b| a.mul(b, ctx))
 	}
 
 	fn to_string(&self) -> String {
