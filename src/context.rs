@@ -77,6 +77,17 @@ pub struct Context<N: Num> {
 	pub vars: HashMap<String, Term<N>>,
 	/// HashMap of functions
 	pub funcs: HashMap<String, Rc<Func<N>>>,
+	/// The configuration used when evaluating expressions
+	pub config: Config,
+}
+
+/// Struct that holds configuration values used when evaluating expressions
+#[derive(Debug, Clone)]
+pub struct Config {
+	/// Whether or not to automatically insert multiplication signs between two operands (default = true)
+	pub implicit_multiplication: bool,
+	/// The precision to be used for arbitrary precision floating point numbers (default = 53)
+	pub precision: u32,
 }
 
 impl<N: Num + 'static> Context<N> {
@@ -87,6 +98,7 @@ impl<N: Num + 'static> Context<N> {
 		let mut ctx: Context<N> = Context {
 			vars: HashMap::new(),
 			funcs: HashMap::new(),
+			config: Config::new(),
 		};
 
 		ctx.set_var("pi", N::from_f64(consts::PI).unwrap());
@@ -110,6 +122,22 @@ impl<N: Num + 'static> Context<N> {
 	/// Add a function definition to the context, replacing any existing one with the same name
 	pub fn set_func<F: Func<N> + 'static>(&mut self, name: &str, func: F) {
 		self.funcs.insert(name.to_string(), Rc::new(func));
+	}
+}
+
+impl Config {
+	/// Create a new config with the default values
+	pub fn new() -> Self {
+		Config {
+			implicit_multiplication: true,
+			precision: 53,
+		}
+	}
+}
+
+impl Default for Config {
+	fn default() -> Self {
+		Self::new()
 	}
 }
 
