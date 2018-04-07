@@ -110,6 +110,29 @@ impl<N: Num> Answer<N> {
 			Answer::Multiple(ns) => ns,
 		}
 	}
+	
+	/// Adds all the answers of another answer to the asnwers of this answer, returning a new answer
+	pub fn join(self, other: Self) -> Self {
+		let mut new = Vec::new();
+		match self {
+			Answer::Single(n) => {
+				new.push(n);
+			},
+			Answer::Multiple(mut ns) => {
+				new.append(&mut ns);
+			}
+		}
+		
+		match other {
+			Answer::Single(n) => {
+				new.push(n);
+			},
+			Answer::Multiple(mut ns) => {
+				new.append(&mut ns);
+			}
+		}
+		Answer::Multiple(new)
+	}
 }
 
 impl<N: Num> fmt::Display for Answer<N> {
