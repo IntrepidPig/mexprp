@@ -25,32 +25,32 @@ impl Num for ComplexRugRat {
 				if let Some(r) = Rational::from_f64(t) {
 					r
 				} else {
-					return Err(MathError::Other) // TODO make descriptive
+					return Err(MathError::Other); // TODO make descriptive
 				}
 			},
 			i: Rational::from(0),
 		}))
 	}
-	
+
 	fn from_f64_complex((r, i): (f64, f64), ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(ComplexRugRat {
 			r: if let Some(r) = Rational::from_f64(r) {
 				r
 			} else {
-				return Err(MathError::Other) // TODO make descriptive
+				return Err(MathError::Other); // TODO make descriptive
 			},
 			i: if let Some(i) = Rational::from_f64(i) {
 				i
 			} else {
-				return Err(MathError::Other) // TODO make descriptive
+				return Err(MathError::Other); // TODO make descriptive
 			},
 		}))
 	}
-	
+
 	fn typename() -> String {
 		String::from("ComplexRugRat")
 	}
-	
+
 	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
 		if let Some(ord) = self.partial_cmp(other) {
 			Ok(ord)
@@ -58,21 +58,21 @@ impl Num for ComplexRugRat {
 			Err(MathError::CmpError)
 		}
 	}
-	
+
 	fn add(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r = Rational::from(&self.r + &other.r);
 		let i = Rational::from(&self.i + &other.i);
-		
+
 		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
-	
+
 	fn sub(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r = Rational::from(&self.r - &other.r);
 		let i = Rational::from(&self.i - &other.i);
-		
+
 		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
-	
+
 	fn mul(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r1 = Rational::from(&self.r * &other.r);
 		let i1 = Rational::from(&self.r * &other.i);
@@ -80,17 +80,17 @@ impl Num for ComplexRugRat {
 		let r2 = Rational::from(&self.i * &other.i);
 		let r = r1 - r2;
 		let i = i1 + i2;
-		
+
 		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
-	
+
 	fn div(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let conj = other.conjugate();
 		let num = self.mul(&conj, ctx)?.unwrap_single();
 		let den = other.mul(&conj, ctx)?.unwrap_single();
 		let r = Rational::from(&num.r / &den.r);
 		let i = Rational::from(&num.i / &den.r);
-		
+
 		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
 }

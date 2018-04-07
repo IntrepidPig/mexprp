@@ -27,8 +27,10 @@ impl<N: Num + 'static> Operate<N> for Add<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
-		
-		a.op(&b, |a, b| a.add(b, ctx))
+
+		a.op(&b, |a, b| {
+			a.add(b, ctx)
+		})
 	}
 
 	fn to_string(&self) -> String {
@@ -46,8 +48,10 @@ impl<N: Num + 'static> Operate<N> for Sub<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
-		
-		a.op(&b, |a, b| a.sub(b, ctx))
+
+		a.op(&b, |a, b| {
+			a.sub(b, ctx)
+		})
 	}
 
 	fn to_string(&self) -> String {
@@ -65,8 +69,10 @@ impl<N: Num + 'static> Operate<N> for Mul<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
-		
-		a.op(&b, |a, b| a.mul(b, ctx))
+
+		a.op(&b, |a, b| {
+			a.mul(b, ctx)
+		})
 	}
 
 	fn to_string(&self) -> String {
@@ -84,8 +90,10 @@ impl<N: Num + 'static> Operate<N> for Div<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
-		
-		a.op(&b, |a, b| a.div(b, ctx))
+
+		a.op(&b, |a, b| {
+			a.div(b, ctx)
+		})
 	}
 
 	fn to_string(&self) -> String {
@@ -103,8 +111,10 @@ impl<N: Num + 'static> Operate<N> for Pow<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
-		
-		a.op(&b, |a, b| a.pow(b, ctx))
+
+		a.op(&b, |a, b| {
+			a.pow(b, ctx)
+		})
 	}
 
 	fn to_string(&self) -> String {
@@ -122,13 +132,17 @@ impl<N: Num + 'static> Operate<N> for PlusMinus<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 		let b = self.b.eval_ctx(ctx)?;
-		
-		let adds = a.op(&b, |a, b| a.add(b, ctx))?;
-		let subs = a.op(&b, |a, b| a.sub(b, ctx))?;
-		
+
+		let adds = a.op(&b, |a, b| {
+			a.add(b, ctx)
+		})?;
+		let subs = a.op(&b, |a, b| {
+			a.sub(b, ctx)
+		})?;
+
 		Ok(adds.join(subs))
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("({} ± {})", self.a, self.b)
 	}
@@ -142,8 +156,10 @@ pub(crate) struct Neg<N: Num> {
 impl<N: Num + 'static> Operate<N> for Neg<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
-		
-		a.op(&N::from_f64(-1.0, ctx)?, |a, b| a.mul(b, ctx))
+
+		a.op(&N::from_f64(-1.0, ctx)?, |a, b| {
+			a.mul(b, ctx)
+		})
 	}
 
 	fn to_string(&self) -> String {
@@ -159,7 +175,7 @@ pub(crate) struct Pos<N: Num> {
 impl<N: Num + 'static> Operate<N> for Pos<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
-		
+
 		Ok(a)
 	}
 
@@ -176,15 +192,15 @@ pub(crate) struct PosNeg<N: Num> {
 impl<N: Num + 'static> Operate<N> for PosNeg<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
-		
+
 		a.unop(|a| {
 			let pos = a;
 			let neg = a.mul(&N::from_f64(-1.0, ctx)?.unwrap_single(), ctx)?;
-			
+
 			Ok(neg.join(Answer::Single(pos.clone())))
 		})
 	}
-	
+
 	fn to_string(&self) -> String {
 		format!("(±{})", self.a)
 	}
@@ -197,7 +213,10 @@ pub(crate) struct Fact<N: Num> {
 
 impl<N: Num + 'static> Operate<N> for Fact<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
-		Err(MathError::Unimplemented { op: "Factorial".to_string(), num_type: "Any".to_string() })
+		Err(MathError::Unimplemented {
+			op: "Factorial".to_string(),
+			num_type: "Any".to_string(),
+		})
 	}
 
 	fn to_string(&self) -> String {
@@ -213,8 +232,10 @@ pub(crate) struct Percent<N: Num> {
 impl<N: Num + 'static> Operate<N> for Percent<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
-		
-		a.op(&N::from_f64(-0.01, ctx)?, |a, b| a.mul(b, ctx))
+
+		a.op(&N::from_f64(-0.01, ctx)?, |a, b| {
+			a.mul(b, ctx)
+		})
 	}
 
 	fn to_string(&self) -> String {

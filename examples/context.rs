@@ -3,7 +3,7 @@
 
 extern crate mexprp;
 
-use mexprp::{Calculation, Context, Expression, MathError, Term, Answer, Num};
+use mexprp::{Answer, Calculation, Context, Expression, MathError, Num, Term};
 
 fn main() {
 	// A context holds data that can be used in an expression
@@ -16,19 +16,22 @@ fn main() {
 	// evaluated with. The item passed in can be anything that implements the `Func` trait. There exists
 	// a blanket impl for Fn(&[Term], &Context) -> Calculation which allows you to pass in closures in
 	// that format.
-	context.set_func("sum", |args: &[Term<f64>], ctx: &Context<f64>| -> Calculation<f64> {
-		if args.len() < 1 {
-			return Err(MathError::IncorrectArguments);
-		};
+	context.set_func(
+		"sum",
+		|args: &[Term<f64>], ctx: &Context<f64>| -> Calculation<f64> {
+			if args.len() < 1 {
+				return Err(MathError::IncorrectArguments);
+			};
 
-		let mut sum = Answer::Single(0.0);
-		for arg in args {
-			let b = arg.eval_ctx(ctx)?;
-			sum = sum.op(&b, |a, b| Num::add(a, b, ctx))?;
-		}
+			let mut sum = Answer::Single(0.0);
+			for arg in args {
+				let b = arg.eval_ctx(ctx)?;
+				sum = sum.op(&b, |a, b| Num::add(a, b, ctx))?;
+			}
 
-		Ok(sum)
-	});
+			Ok(sum)
+		},
+	);
 
 	let raw = "2 * sum(x, 7, 400)";
 	// The expression needs to be parsed with the context in order do decide if some names are functions

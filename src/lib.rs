@@ -148,7 +148,7 @@ mod tests;
 pub use func::Func;
 pub use expr::Expression;
 pub use term::Term;
-pub use context::{Context, Config};
+pub use context::{Config, Context};
 pub use errors::{EvalError, MathError, ParseError};
 pub use num::Num;
 pub use opers::Calculation;

@@ -116,7 +116,7 @@ impl<N: Num + 'static> Context<N> {
 		use self::funcs::*;
 
 		let mut ctx: Context<N> = Context::empty();
-		
+
 		let empty = Context::empty();
 
 		ctx.set_var("pi", N::from_f64(consts::PI, &empty).unwrap());
@@ -151,7 +151,7 @@ impl<N: Num + 'static> Context<N> {
 	pub fn set_func<F: Func<N> + 'static>(&mut self, name: &str, func: F) {
 		self.funcs.insert(name.to_string(), Rc::new(func));
 	}
-	
+
 	/// Creates an empty `Context` with the default config
 	pub fn empty() -> Self {
 		Context {
@@ -217,26 +217,26 @@ pub(in context) mod funcs {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::sin(a, ctx))
 		}
 	}
-	
+
 	pub struct Cos;
 	impl<N: Num + 'static> Func<N> for Cos {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::cos(a, ctx))
 		}
 	}
-	
+
 	pub struct Max;
 	impl<N: Num + 'static> Func<N> for Max {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
@@ -252,9 +252,11 @@ pub(in context) mod funcs {
 					one
 				}
 			};
-			
+
 			// Try to evaluate the arguments
-			let args: Vec<Answer<N>> = args.iter().map(|term| term.eval_ctx(ctx)).collect::<Result<Vec<Answer<N>>, MathError>>()?;
+			let args: Vec<Answer<N>> = args.iter()
+				.map(|term| term.eval_ctx(ctx))
+				.collect::<Result<Vec<Answer<N>>, MathError>>()?;
 			let mut new_args = Vec::new();
 			// Push each answer of each argument to `new_args`
 			for a in args {
@@ -272,7 +274,7 @@ pub(in context) mod funcs {
 			Ok(Answer::Single(max))
 		}
 	}
-	
+
 	pub struct Min;
 	impl<N: Num + 'static> Func<N> for Min {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
@@ -288,9 +290,11 @@ pub(in context) mod funcs {
 					one
 				}
 			};
-			
+
 			// Try to evaluate the arguments
-			let args: Vec<Answer<N>> = args.iter().map(|term| term.eval_ctx(ctx)).collect::<Result<Vec<Answer<N>>, MathError>>()?;
+			let args: Vec<Answer<N>> = args.iter()
+				.map(|term| term.eval_ctx(ctx))
+				.collect::<Result<Vec<Answer<N>>, MathError>>()?;
 			let mut new_args = Vec::new();
 			// Push each answer of each argument to `new_args`
 			for a in args {
@@ -315,155 +319,155 @@ pub(in context) mod funcs {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
 
 			a.unop(|a| Num::sqrt(a, ctx))
 		}
 	}
-	
+
 	pub struct Nrt;
 	impl<N: Num + 'static> Func<N> for Nrt {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 2 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
 			let b = args[1].eval_ctx(ctx)?;
-			
+
 			a.op(&b, |a, b| Num::nrt(a, b, ctx))
 		}
 	}
-	
+
 	pub struct Abs;
 	impl<N: Num + 'static> Func<N> for Abs {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::abs(a, ctx))
 		}
 	}
-	
+
 	pub struct Tan;
 	impl<N: Num + 'static> Func<N> for Tan {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::tan(a, ctx))
 		}
 	}
-	
+
 	pub struct Asin;
 	impl<N: Num + 'static> Func<N> for Asin {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::asin(a, ctx))
 		}
 	}
-	
+
 	pub struct Acos;
 	impl<N: Num + 'static> Func<N> for Acos {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::acos(a, ctx))
 		}
 	}
-	
+
 	pub struct Atan;
 	impl<N: Num + 'static> Func<N> for Atan {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::atan(a, ctx))
 		}
 	}
-	
+
 	pub struct Atan2;
 	impl<N: Num + 'static> Func<N> for Atan2 {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 2 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
 			let b = args[1].eval_ctx(ctx)?;
-			
+
 			a.op(&b, |a, b| Num::atan2(a, b, ctx))
 		}
 	}
-	
+
 	pub struct Floor;
 	impl<N: Num + 'static> Func<N> for Floor {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::floor(a, ctx))
 		}
 	}
-	
+
 	pub struct Ceil;
 	impl<N: Num + 'static> Func<N> for Ceil {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::ceil(a, ctx))
 		}
 	}
-	
+
 	pub struct Round;
 	impl<N: Num + 'static> Func<N> for Round {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 1 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
-			
+
 			a.unop(|a| Num::round(a, ctx))
 		}
 	}
-	
+
 	pub struct Log;
 	impl<N: Num + 'static> Func<N> for Log {
 		fn eval(&self, args: &[Term<N>], ctx: &Context<N>) -> Calculation<N> {
 			if args.len() != 2 {
 				return Err(MathError::IncorrectArguments);
 			}
-			
+
 			let a = args[0].eval_ctx(ctx)?;
 			let b = args[1].eval_ctx(ctx)?;
-			
+
 			a.op(&b, |a, b| Num::log(a, b, ctx))
 		}
 	}

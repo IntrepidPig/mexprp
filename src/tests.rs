@@ -1,5 +1,5 @@
-use {eval, Calculation, Context, Expression, Term, Answer, Num};
-use num::{ComplexRugRat, ComplexFloat};
+use {eval, Answer, Calculation, Context, Expression, Num, Term};
+use num::{ComplexFloat, ComplexRugRat};
 
 #[test]
 fn plain() {
@@ -51,17 +51,30 @@ fn sin() {
 
 #[test]
 fn funcs() {
-	assert!(eq(eval::<f64>("max(sin(2), 5000000, -4)").unwrap().unwrap_single(), 5000000.0));
-	assert!(eq(eval::<f64>("min(2 / -3 * 3 * 3, 5000000, -4)").unwrap().unwrap_single(), -6.0));
+	assert!(eq(
+		eval::<f64>("max(sin(2), 5000000, -4)")
+			.unwrap()
+			.unwrap_single(),
+		5000000.0
+	));
+	assert!(eq(
+		eval::<f64>("min(2 / -3 * 3 * 3, 5000000, -4)")
+			.unwrap()
+			.unwrap_single(),
+		-6.0
+	));
 	let mut context: Context<f64> = Context::new();
-	context.set_func("sum", |args: &[Term<f64>], ctx: &Context<f64>| -> Calculation<f64> {
-		let mut x = Answer::Single(0.0);
-		for arg in args {
-			let a = arg.eval_ctx(ctx)?;
-			x = x.op(&a, |a, b| Num::add(a, b, ctx))?;
-		}
-		Ok(x)
-	});
+	context.set_func(
+		"sum",
+		|args: &[Term<f64>], ctx: &Context<f64>| -> Calculation<f64> {
+			let mut x = Answer::Single(0.0);
+			for arg in args {
+				let a = arg.eval_ctx(ctx)?;
+				x = x.op(&a, |a, b| Num::add(a, b, ctx))?;
+			}
+			Ok(x)
+		},
+	);
 	let expr: Expression<f64> = Expression::parse_ctx("sum(4, 5, 6) / 3", context).unwrap();
 	assert!(eq(expr.eval().unwrap().unwrap_single(), 5.0));
 }
@@ -70,9 +83,11 @@ fn eq<N: Num + 'static>(x: N, y: f64) -> bool {
 	use std::cmp::Ordering;
 	let ctx = &Context::empty();
 	x.sub(&N::from_f64(y, ctx).unwrap().unwrap_single(), ctx)
-			.unwrap().unwrap_single()
-			.abs(ctx).unwrap().unwrap_single()
-			.tryord(&N::from_f64(0.00001, ctx).unwrap().unwrap_single(), ctx)
-			.unwrap()
-			== Ordering::Less
+		.unwrap()
+		.unwrap_single()
+		.abs(ctx)
+		.unwrap()
+		.unwrap_single()
+		.tryord(&N::from_f64(0.00001, ctx).unwrap().unwrap_single(), ctx)
+		.unwrap() == Ordering::Less
 }

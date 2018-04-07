@@ -93,7 +93,10 @@ fn next_in_op(raw: &str) -> Option<(Token, &str)> {
 			'*' | '×' => Some((Token::Op(Op::In(In::Mul)), &raw[c.len_utf8()..raw.len()])),
 			'/' | '÷' => Some((Token::Op(Op::In(In::Div)), &raw[c.len_utf8()..raw.len()])),
 			'^' => Some((Token::Op(Op::In(In::Pow)), &raw[c.len_utf8()..raw.len()])),
-			'±' => Some((Token::Op(Op::In(In::PlusMinus)), &raw[c.len_utf8()..raw.len()])),
+			'±' => Some((
+				Token::Op(Op::In(In::PlusMinus)),
+				&raw[c.len_utf8()..raw.len()],
+			)),
 			_ => None,
 		}
 	} else {
@@ -107,7 +110,10 @@ fn next_pre_op(raw: &str) -> Option<(Token, &str)> {
 		match c {
 			'-' => Some((Token::Op(Op::Pre(Pre::Neg)), &raw[c.len_utf8()..raw.len()])),
 			'+' => Some((Token::Op(Op::Pre(Pre::Pos)), &raw[c.len_utf8()..raw.len()])),
-			'±' => Some((Token::Op(Op::Pre(Pre::PosNeg)), &raw[c.len_utf8()..raw.len()])),
+			'±' => Some((
+				Token::Op(Op::Pre(Pre::PosNeg)),
+				&raw[c.len_utf8()..raw.len()],
+			)),
 			_ => None,
 		}
 	} else {

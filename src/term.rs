@@ -48,7 +48,7 @@ impl<N: Num + 'static> Term<N> {
 		let ctx = Context::new();
 		Self::parse_ctx(raw, &ctx)
 	}
-	
+
 	/// Parse a string into an expression with the given context
 	pub fn parse_ctx(raw: &str, ctx: &Context<N>) -> Result<Self, ParseError> {
 		let raw = raw.trim();
@@ -61,21 +61,21 @@ impl<N: Num + 'static> Term<N> {
 		};
 		let postfix = tokenexprs_to_postfix(exprs);
 		let term = postfix_to_term(postfix, ctx)?;
-		
+
 		Ok(term)
 	}
-	
+
 	/// Evaluate the term with the default context
 	pub fn eval(&self) -> Calculation<N> {
 		let ctx = Context::new();
 		self.eval_ctx(&ctx)
 	}
-	
+
 	/// Evaluate the term with the given context
 	pub fn eval_ctx(&self, ctx: &Context<N>) -> Calculation<N> {
 		// Evaluate each possible term type
 		match *self {
-			Term::Num(ref num) => Ok(num.clone()),                   // Already evaluated
+			Term::Num(ref num) => Ok(num.clone()),       // Already evaluated
 			Term::Operation(ref oper) => oper.eval(ctx), // Perform the operation with the given context
 			Term::Function(ref name, ref args) => {
 				// Execute the function if it exists
@@ -95,7 +95,7 @@ impl<N: Num + 'static> Term<N> {
 			}
 		}
 	}
-	
+
 	/// Express this term as a string
 	pub fn to_string(&self) -> String {
 		match *self {
@@ -147,7 +147,7 @@ fn paren_to_exprs<N: Num + 'static>(raw: Vec<ParenToken>, ctx: &Context<N>) -> R
 	let mut mtokens = Vec::new();
 	// Names that have yet to be decided
 	let mut pending_name = None;
-	
+
 	for rt in raw {
 		match rt {
 			ParenToken::Num(num) => {
@@ -176,7 +176,8 @@ fn paren_to_exprs<N: Num + 'static>(raw: Vec<ParenToken>, ctx: &Context<N>) -> R
 							mtokens.push(Expr::Var(name)); // It's a variable
 							mtokens.push(Expr::Sub(paren_to_exprs(sub, ctx)?)); // Push the subexpression
 						}
-					} else { // If not then it's definitely a function
+					} else {
+						// If not then it's definitely a function
 						mtokens.push(Expr::Func(name, tokens_to_args(sub, ctx)?)); // Push as a function, with the args parsed
 					}
 				} else {
@@ -200,12 +201,12 @@ fn paren_to_exprs<N: Num + 'static>(raw: Vec<ParenToken>, ctx: &Context<N>) -> R
 			}
 		}
 	}
-	
+
 	if let Some(pending_name) = pending_name.take() {
 		// Push a leftover pending name
 		mtokens.push(Expr::Var(pending_name));
 	}
-	
+
 	Ok(mtokens)
 }
 
@@ -216,7 +217,7 @@ fn tokens_to_args<N: Num + 'static>(raw: Vec<ParenToken>, ctx: &Context<N>) -> R
 		ParenToken::Comma => true,
 		_ => false,
 	}).collect();
-	
+
 	let mut new = Vec::new();
 	for arg in args {
 		if arg.is_empty() {
@@ -232,12 +233,12 @@ fn tokens_to_args<N: Num + 'static>(raw: Vec<ParenToken>, ctx: &Context<N>) -> R
 #[cfg_attr(feature = "cargo-clippy", allow(redundant_closure))]
 fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 	let mut i = 0;
-	
+
 	if raw.is_empty() {
 		// Don't panic on empty input
 		return Vec::new();
 	}
-	
+
 	while i < raw.len() - 1 {
 		if raw[i].is_operand() && raw[i + 1].is_operand() {
 			raw.insert(i + 1, Expr::Op(Op::In(In::Mul)));
@@ -253,7 +254,7 @@ fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 			i += 1;
 		}
 	}
-	
+
 	let mut new = Vec::new();
 	for texpr in raw {
 		match texpr {
@@ -261,13 +262,13 @@ fn insert_operators(mut raw: Vec<Expr>) -> Vec<Expr> {
 			Expr::Func(name, args) => new.push(Expr::Func(
 				name,
 				args.into_iter()
-						.map(|texprs| insert_operators(texprs))
-						.collect(),
+					.map(|texprs| insert_operators(texprs))
+					.collect(),
 			)),
 			t => new.push(t),
 		}
 	}
-	
+
 	new
 }
 
@@ -303,14 +304,14 @@ fn tokenexprs_to_postfix(raw: Vec<Expr>) -> Vec<Expr> {
 				Expr::Sub(ref texprs) => stack.push(Expr::Sub(recurse(texprs))), // Push the subexpression onto the stack
 			}
 		}
-		
+
 		while let Some(op) = ops.pop() {
 			// Push leftover operators onto stack
 			stack.push(Expr::Op(op));
 		}
 		stack
 	}
-	
+
 	recurse(&raw)
 }
 
@@ -332,7 +333,7 @@ fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>, ctx: &Context<N>) -> Result
 							}
 						}
 					}
-				
+
 				let oper: Rc<Operate<N>> = match op {
 					Op::In(op) => match op {
 						In::Add => Rc::new(Add {
@@ -363,7 +364,7 @@ fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>, ctx: &Context<N>) -> Result
 					Op::Pre(op) => match op {
 						Pre::Neg => Rc::new(Neg { a: pop!() }),
 						Pre::Pos => Rc::new(Pos { a: pop!() }),
-						Pre::PosNeg => Rc::new(PosNeg { a: pop!() })
+						Pre::PosNeg => Rc::new(PosNeg { a: pop!() }),
 					},
 					Op::Post(op) => match op {
 						Post::Fact => Rc::new(Fact { a: pop!() }),
@@ -395,7 +396,7 @@ fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>, ctx: &Context<N>) -> Result
 			expected: Expected::Operator,
 		});
 	}
-	
+
 	if let Some(term) = stack.pop() {
 		Ok(term)
 	} else {

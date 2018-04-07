@@ -57,36 +57,137 @@ use context::Context;
 /// be implemented for it, any of which can fail, as well as the traits: Debug, Clone, Display, PartialOrd,
 /// and PartialEq.
 #[allow(missing_docs)]
-pub trait Num: fmt::Debug + fmt::Display + Clone + PartialEq where
-	Self: Sized
+pub trait Num: fmt::Debug + fmt::Display + Clone + PartialEq
+where
+	Self: Sized,
 {
 	/// Attempts to create an instance of the number from an f64
 	fn from_f64(t: f64, ctx: &Context<Self>) -> Calculation<Self>;
 	/// Attempts to create an instance of the number from complex parts. It's possible the imaginary
 	/// part will be ignored for Numbers that don't support it.
 	fn from_f64_complex(t: (f64, f64), ctx: &Context<Self>) -> Calculation<Self>;
-	
+
 	/// Returns the name of this Num type (used for errors)
 	fn typename() -> String;
-	
-	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> { Err(MathError::Unimplemented { op: "Comparison".to_string(), num_type: Self::typename() }) }
-	fn add(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Addition".to_string(), num_type: Self::typename() }) }
-	fn sub(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Subtraction".to_string(), num_type: Self::typename() }) }
-	fn mul(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Multiplication".to_string(), num_type: Self::typename() }) }
-	fn div(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Division".to_string(), num_type: Self::typename() }) }
-	fn pow(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Exponent".to_string(), num_type: Self::typename() }) }
-	fn sqrt(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Square Root".to_string(), num_type: Self::typename() }) }
-	fn nrt(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Nth Root".to_string(), num_type: Self::typename() }) }
-	fn abs(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Absolute Value".to_string(), num_type: Self::typename() }) }
-	fn sin(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Sine".to_string(), num_type: Self::typename() }) }
-	fn cos(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Cosine".to_string(), num_type: Self::typename() }) }
-	fn tan(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Tangent".to_string(), num_type: Self::typename() }) }
-	fn asin(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Arc Sine".to_string(), num_type: Self::typename() }) }
-	fn acos(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Arc Cosine".to_string(), num_type: Self::typename() }) }
-	fn atan(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Arc Tangent".to_string(), num_type: Self::typename() }) }
-	fn atan2(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Atan2".to_string(), num_type: Self::typename() }) }
-	fn floor(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Flooring".to_string(), num_type: Self::typename() }) }
-	fn ceil(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Ceiling".to_string(), num_type: Self::typename() }) }
-	fn round(&self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Rounding".to_string(), num_type: Self::typename() }) }
-	fn log(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> { Err(MathError::Unimplemented { op: "Logarithm".to_string(), num_type: Self::typename() }) }
+
+	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
+		Err(MathError::Unimplemented {
+			op: "Comparison".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn add(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Addition".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn sub(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Subtraction".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn mul(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Multiplication".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn div(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Division".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn pow(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Exponent".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn sqrt(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Square Root".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn nrt(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Nth Root".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn abs(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Absolute Value".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn sin(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Sine".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn cos(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Cosine".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn tan(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Tangent".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn asin(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Arc Sine".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn acos(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Arc Cosine".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn atan(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Arc Tangent".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn atan2(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Atan2".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn floor(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Flooring".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn ceil(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Ceiling".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn round(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Rounding".to_string(),
+			num_type: Self::typename(),
+		})
+	}
+	fn log(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+		Err(MathError::Unimplemented {
+			op: "Logarithm".to_string(),
+			num_type: Self::typename(),
+		})
+	}
 }

@@ -22,87 +22,75 @@ impl<N: Num> Answer<N> {
 		fn push_answers<N: Num>(answer: Answer<N>, list: &mut Vec<N>) {
 			match answer {
 				Answer::Single(n) => list.push(n),
-				Answer::Multiple(ns) => {
-					for n in ns {
-						list.push(n)
-					}
-				}
+				Answer::Multiple(ns) => for n in ns {
+					list.push(n)
+				},
 			}
 		}
-		
+
 		match *self {
-			Answer::Single(ref n) => {
-				match *other {
-					Answer::Single(ref n2) => {
-						oper(n, n2)
-					},
-					Answer::Multiple(ref n2s) => {
-						let mut answers = Vec::new();
+			Answer::Single(ref n) => match *other {
+				Answer::Single(ref n2) => oper(n, n2),
+				Answer::Multiple(ref n2s) => {
+					let mut answers = Vec::new();
+					for n2 in n2s {
+						push_answers(oper(n, n2)?, &mut answers);
+					}
+					Ok(Answer::Multiple(answers))
+				}
+			},
+			Answer::Multiple(ref ns) => match *other {
+				Answer::Single(ref n2) => {
+					let mut answers = Vec::new();
+					for n in ns {
+						push_answers(oper(n, n2)?, &mut answers);
+					}
+					Ok(Answer::Multiple(answers))
+				}
+				Answer::Multiple(ref n2s) => {
+					let mut answers = Vec::new();
+					for n in ns {
 						for n2 in n2s {
 							push_answers(oper(n, n2)?, &mut answers);
 						}
-						Ok(Answer::Multiple(answers))
 					}
-				}
-			},
-			Answer::Multiple(ref ns) => {
-				match *other {
-					Answer::Single(ref n2) => {
-						let mut answers = Vec::new();
-						for n in ns {
-							push_answers(oper(n, n2)?, &mut answers);
-						}
-						Ok(Answer::Multiple(answers))
-					},
-					Answer::Multiple(ref n2s) => {
-						let mut answers = Vec::new();
-						for n in ns {
-							for n2 in n2s {
-								push_answers(oper(n, n2)?, &mut answers);
-							}
-						}
-						Ok(Answer::Multiple(answers))
-					}
+					Ok(Answer::Multiple(answers))
 				}
 			},
 		}
 	}
-	
+
 	/// Perform an operation on all the values of an answer
 	pub fn unop<F: Fn(&N) -> Calculation<N>>(&self, oper: F) -> Calculation<N> {
 		fn push_answers<N: Num>(answer: Answer<N>, list: &mut Vec<N>) {
 			match answer {
 				Answer::Single(n) => list.push(n),
-				Answer::Multiple(ns) => {
-					for n in ns {
-						list.push(n)
-					}
-				}
+				Answer::Multiple(ns) => for n in ns {
+					list.push(n)
+				},
 			}
 		}
-		
+
 		match *self {
-			Answer::Single(ref n) => {
-				oper(n)
-			},
+			Answer::Single(ref n) => oper(n),
 			Answer::Multiple(ref ns) => {
 				let mut answers = Vec::new();
 				for n in ns {
 					push_answers(oper(n)?, &mut answers);
 				}
 				Ok(Answer::Multiple(answers))
-			},
+			}
 		}
 	}
-	
+
 	/// Unwrap the single variant of an answer
 	pub fn unwrap_single(self) -> N {
 		match self {
 			Answer::Single(n) => n,
-			Answer::Multiple(_) => panic!("Attempted to unwrap multiple answers as one")
+			Answer::Multiple(_) => panic!("Attempted to unwrap multiple answers as one"),
 		}
 	}
-	
+
 	/// Convert this answer into a vector
 	pub fn to_vec(self) -> Vec<N> {
 		match self {
@@ -110,23 +98,23 @@ impl<N: Num> Answer<N> {
 			Answer::Multiple(ns) => ns,
 		}
 	}
-	
+
 	/// Adds all the answers of another answer to the asnwers of this answer, returning a new answer
 	pub fn join(self, other: Self) -> Self {
 		let mut new = Vec::new();
 		match self {
 			Answer::Single(n) => {
 				new.push(n);
-			},
+			}
 			Answer::Multiple(mut ns) => {
 				new.append(&mut ns);
 			}
 		}
-		
+
 		match other {
 			Answer::Single(n) => {
 				new.push(n);
-			},
+			}
 			Answer::Multiple(mut ns) => {
 				new.append(&mut ns);
 			}

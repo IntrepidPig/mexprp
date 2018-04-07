@@ -18,20 +18,17 @@ pub struct ComplexFloat {
 
 impl Num for ComplexFloat {
 	fn from_f64(t: f64, ctx: &Context<Self>) -> Calculation<Self> {
-		Ok(Answer::Single(ComplexFloat {
-			r: t,
-			i: 0.0,
-		}))
+		Ok(Answer::Single(ComplexFloat { r: t, i: 0.0 }))
 	}
-	
+
 	fn from_f64_complex((r, i): (f64, f64), ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
-	
+
 	fn typename() -> String {
 		String::from("ComplexFloat")
 	}
-	
+
 	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
 		if let Some(ord) = self.partial_cmp(other) {
 			Ok(ord)
@@ -39,21 +36,21 @@ impl Num for ComplexFloat {
 			Err(MathError::CmpError)
 		}
 	}
-	
+
 	fn add(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r = self.r + other.r;
 		let i = self.i + other.i;
-		
+
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
-	
+
 	fn sub(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r = self.r - other.r;
 		let i = self.i - other.i;
-		
+
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
-	
+
 	fn mul(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r1 = self.r * other.r;
 		let i1 = self.r * other.i;
@@ -61,17 +58,17 @@ impl Num for ComplexFloat {
 		let r2 = self.i * other.i;
 		let r = r1 - r2;
 		let i = i1 + i2;
-		
+
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
-	
+
 	fn div(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let conj = other.conjugate();
 		let num = self.mul(&conj, ctx)?.unwrap_single();
 		let den = other.mul(&conj, ctx)?.unwrap_single();
 		let r = num.r / den.r;
 		let i = num.i / den.r;
-		
+
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 }
@@ -88,19 +85,13 @@ impl ComplexFloat {
 
 impl From<(f64, f64)> for ComplexFloat {
 	fn from((r, i): (f64, f64)) -> Self {
-		ComplexFloat {
-			r,
-			i,
-		}
+		ComplexFloat { r, i }
 	}
 }
 
 impl From<f64> for ComplexFloat {
 	fn from(t: f64) -> Self {
-		ComplexFloat {
-			r: t,
-			i: 0.0,
-		}
+		ComplexFloat { r: t, i: 0.0 }
 	}
 }
 
