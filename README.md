@@ -58,7 +58,7 @@ let res = expr.eval(); // Ok(Answer::Single(16.0))
 For a list of builtin functions/constants in `Context`s, see the API docs for the `Context` struct. 
 
 ### Multiple Precisions
-MEXPRP supports evaluating expressions with different precisions and complex numbers with the [`Num`](num::Num) trait. Currently supported number types are
+MEXPRP supports evaluating expressions with different precisions and complex numbers with the `Num` trait. Currently supported number types are
 - `f64`
 - `ComplexFloat`
 - `ComplexRugRat`(using the rug crate)
