@@ -60,10 +60,10 @@ For a list of builtin functions/constants in `Context`s, see the API docs for th
 ### Multiple Precisions
 MEXPRP supports evaluating expressions with different precisions and complex numbers with the [`Num`](num::Num) trait. Currently supported number types are
 - `f64`
-- [`ComplexFloat`](num::ComplexFloat)
-- [`ComplexRugRat`](num::ComplexRugRat) (using the rug crate)
-- [`Rational`](::rug::Rational) (from the rug crate)
-- [`Complex`](::rug::Complex) (from the rug crate)
+- `ComplexFloat`
+- `ComplexRugRat`(using the rug crate)
+- `Rational` (from the rug crate)
+- `Complex` (from the rug crate)
 
 However, the implementation for certain types is incomplete. Only the `f64` type fully implements all of the operations. `Complex` is the next best, but even it is still missing some. The others only implement a (small) subset of the functionality of the `Num` trait, and return a `MathError::Unimplemented` when an unsupported operation is attempted. It is hopeful that more functions will be implemented in the future, but some are very difficult to implement for arbitrary precision or rational numbers.
 
