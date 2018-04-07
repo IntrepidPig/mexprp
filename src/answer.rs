@@ -112,7 +112,7 @@ impl<N: Num> fmt::Display for Answer<N> {
 		match *self {
 			Answer::Single(ref n) => write!(f, "{}", n),
 			Answer::Multiple(ref ns) => {
-				let mut buf = String::from("S = {");
+				let mut buf = String::from("{");
 				for (i, n) in ns.iter().enumerate() {
 					buf.push_str(&format!("{}", n));
 					if i + 1 < ns.len() {
