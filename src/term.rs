@@ -176,9 +176,8 @@ fn paren_to_exprs<N: Num + 'static>(raw: Vec<ParenToken>, ctx: &Context<N>) -> R
 							mtokens.push(Expr::Var(name)); // It's a variable
 							mtokens.push(Expr::Sub(paren_to_exprs(sub, ctx)?)); // Push the subexpression
 						}
-					} else { // If not then it's definitely a variable
-						mtokens.push(Expr::Var(name)); // It's a variable
-						mtokens.push(Expr::Sub(paren_to_exprs(sub, ctx)?)); // Push the subexpression
+					} else { // If not then it's definitely a function
+						mtokens.push(Expr::Func(name, tokens_to_args(sub, ctx)?)); // Push as a function, with the args parsed
 					}
 				} else {
 					// Just push the subexpression
