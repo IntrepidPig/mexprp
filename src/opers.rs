@@ -113,6 +113,28 @@ impl<N: Num + 'static> Operate<N> for Pow<N> {
 }
 
 #[derive(Debug, Clone)]
+pub(crate) struct PlusMinus<N: Num> {
+	pub a: Term<N>,
+	pub b: Term<N>,
+}
+
+impl<N: Num + 'static> Operate<N> for PlusMinus<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		let a = self.a.eval_ctx(ctx)?;
+		let b = self.b.eval_ctx(ctx)?;
+		
+		let adds = a.op(&b, |a, b| a.add(b, ctx))?;
+		let subs = a.op(&b, |a, b| a.sub(b, ctx))?;
+		
+		Ok(adds.join(subs))
+	}
+	
+	fn to_string(&self) -> String {
+		format!("({} ± {})", self.a, self.b)
+	}
+}
+
+#[derive(Debug, Clone)]
 pub(crate) struct Neg<N: Num> {
 	pub a: Term<N>,
 }
@@ -143,6 +165,28 @@ impl<N: Num + 'static> Operate<N> for Pos<N> {
 
 	fn to_string(&self) -> String {
 		format!("(+{})", self.a)
+	}
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct PosNeg<N: Num> {
+	pub a: Term<N>,
+}
+
+impl<N: Num + 'static> Operate<N> for PosNeg<N> {
+	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
+		let a = self.a.eval_ctx(ctx)?;
+		
+		a.unop(|a| {
+			let pos = a;
+			let neg = a.mul(&N::from_f64(-1.0, ctx)?.unwrap_single(), ctx)?;
+			
+			Ok(neg.join(Answer::Single(pos.clone())))
+		})
+	}
+	
+	fn to_string(&self) -> String {
+		format!("(±{})", self.a)
 	}
 }
 

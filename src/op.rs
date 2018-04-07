@@ -12,12 +12,14 @@ pub(crate) enum In {
 	Div,
 	Add,
 	Sub,
+	PlusMinus,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub(crate) enum Pre {
 	Neg,
 	Pos,
+	PosNeg,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -35,10 +37,10 @@ impl Op {
 			Op::In(ref op) => match *op {
 				Pow => 4,
 				Mul | Div => 3,
-				Add | Sub => 2,
+				Add | Sub | PlusMinus => 2,
 			},
 			Op::Pre(ref op) => match *op {
-				Neg | Pos => 4,
+				Neg | Pos | PosNeg => 4,
 			},
 			Op::Post(ref op) => match *op {
 				Fact => 4,
@@ -54,10 +56,10 @@ impl Op {
 		match *self {
 			Op::In(ref op) => match *op {
 				Pow => false,
-				Mul | Div | Add | Sub => true,
+				Mul | Div | Add | Sub | PlusMinus => true,
 			},
 			Op::Pre(ref op) => match *op {
-				Neg | Pos => false,
+				Neg | Pos | PosNeg => false,
 			},
 			Op::Post(ref op) => match *op {
 				Fact => true,
@@ -77,10 +79,12 @@ impl Op {
 				Div => "/",
 				Add => "+",
 				Sub => "-",
+				PlusMinus => "±",
 			},
 			Op::Pre(ref op) => match *op {
 				Neg => "-",
 				Pos => "+",
+				PosNeg => "±",
 			},
 			Op::Post(ref op) => match *op {
 				Fact => "!",

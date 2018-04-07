@@ -355,10 +355,15 @@ fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>, ctx: &Context<N>) -> Result
 							b: pop!(),
 							a: pop!(),
 						}),
+						In::PlusMinus => Rc::new(PlusMinus {
+							b: pop!(),
+							a: pop!(),
+						}),
 					},
 					Op::Pre(op) => match op {
 						Pre::Neg => Rc::new(Neg { a: pop!() }),
 						Pre::Pos => Rc::new(Pos { a: pop!() }),
+						Pre::PosNeg => Rc::new(PosNeg { a: pop!() })
 					},
 					Op::Post(op) => match op {
 						Post::Fact => Rc::new(Fact { a: pop!() }),
