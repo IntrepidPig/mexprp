@@ -1,11 +1,11 @@
 use std::fmt;
 use std::cmp::Ordering;
 
-use opers::Calculation;
-use num::Num;
-use answer::Answer;
-use errors::MathError;
-use context::Context;
+use crate::opers::Calculation;
+use crate::num::Num;
+use crate::answer::Answer;
+use crate::errors::MathError;
+use crate::context::Context;
 
 /// A complex number made of a real `f64` and an imaginary `f64`.
 #[derive(Debug, Clone)]
@@ -17,11 +17,11 @@ pub struct ComplexFloat {
 }
 
 impl Num for ComplexFloat {
-	fn from_f64(t: f64, ctx: &Context<Self>) -> Calculation<Self> {
+	fn from_f64(t: f64, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(ComplexFloat { r: t, i: 0.0 }))
 	}
 
-	fn from_f64_complex((r, i): (f64, f64), ctx: &Context<Self>) -> Calculation<Self> {
+	fn from_f64_complex((r, i): (f64, f64), _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 
@@ -29,7 +29,7 @@ impl Num for ComplexFloat {
 		String::from("ComplexFloat")
 	}
 
-	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
+	fn tryord(&self, other: &Self, _ctx: &Context<Self>) -> Result<Ordering, MathError> {
 		if let Some(ord) = self.partial_cmp(other) {
 			Ok(ord)
 		} else {
@@ -37,21 +37,21 @@ impl Num for ComplexFloat {
 		}
 	}
 
-	fn add(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn add(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		let r = self.r + other.r;
 		let i = self.i + other.i;
 
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 
-	fn sub(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn sub(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		let r = self.r - other.r;
 		let i = self.i - other.i;
 
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 
-	fn mul(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn mul(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		let r1 = self.r * other.r;
 		let i1 = self.r * other.i;
 		let i2 = self.i * other.r;

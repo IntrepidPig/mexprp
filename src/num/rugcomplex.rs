@@ -1,13 +1,13 @@
 use std::cmp::Ordering;
 
-use rug;
+
 use rug::Complex;
 use rug::ops::Pow;
-use opers::Calculation;
-use errors::MathError;
-use answer::Answer;
-use num::Num;
-use context::Context;
+use crate::opers::Calculation;
+use crate::errors::MathError;
+use crate::answer::Answer;
+use crate::num::Num;
+use crate::context::Context;
 
 impl Num for Complex {
 	fn from_f64(t: f64, ctx: &Context<Self>) -> Calculation<Self> {
@@ -22,7 +22,7 @@ impl Num for Complex {
 		String::from("Complex")
 	}
 
-	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
+	fn tryord(&self, other: &Self, _ctx: &Context<Self>) -> Result<Ordering, MathError> {
 		if let Some(ord) = self.real().partial_cmp(other.real()) {
 			Ok(ord)
 		} else {

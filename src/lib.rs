@@ -145,14 +145,14 @@ mod answer;
 #[cfg(test)]
 mod tests;
 
-pub use func::Func;
-pub use expr::Expression;
-pub use term::Term;
-pub use context::{Config, Context};
-pub use errors::{EvalError, MathError, ParseError};
-pub use num::Num;
-pub use opers::Calculation;
-pub use answer::Answer;
+pub use crate::func::Func;
+pub use crate::expr::Expression;
+pub use crate::term::Term;
+pub use crate::context::{Config, Context};
+pub use crate::errors::{EvalError, MathError, ParseError};
+pub use crate::num::Num;
+pub use crate::opers::Calculation;
+pub use crate::answer::Answer;
 
 /// Parse and evaluate a string
 pub fn eval<N: Num + 'static>(expr: &str) -> Result<Answer<N>, EvalError> {

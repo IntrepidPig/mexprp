@@ -1,18 +1,18 @@
 use std::f64;
 use std::cmp::Ordering;
 
-use opers::Calculation;
-use errors::MathError;
-use num::Num;
-use answer::Answer;
-use context::Context;
+use crate::opers::Calculation;
+use crate::errors::MathError;
+use crate::num::Num;
+use crate::answer::Answer;
+use crate::context::Context;
 
 impl Num for f64 {
-	fn from_f64(t: f64, ctx: &Context<Self>) -> Calculation<Self> {
+	fn from_f64(t: f64, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(t))
 	}
 
-	fn from_f64_complex((r, _i): (f64, f64), ctx: &Context<Self>) -> Calculation<Self> {
+	fn from_f64_complex((r, _i): (f64, f64), _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(r))
 	}
 
@@ -46,19 +46,19 @@ impl Num for f64 {
 		}
 	}
 
-	fn add(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn add(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(*self + *other))
 	}
 
-	fn sub(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn sub(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(*self - *other))
 	}
 
-	fn mul(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn mul(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(*self * *other))
 	}
 
-	fn div(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn div(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		if *other == 0.0 {
 			return Err(MathError::DivideByZero);
 		}
@@ -66,7 +66,7 @@ impl Num for f64 {
 		Ok(Answer::Single(*self / *other))
 	}
 
-	fn pow(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn pow(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(self.powf(*other)))
 	}
 
@@ -80,51 +80,51 @@ impl Num for f64 {
 		})
 	}
 
-	fn abs(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn abs(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::abs(*self)))
 	}
 
-	fn sin(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn sin(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::sin(*self)))
 	}
 
-	fn cos(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn cos(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::cos(*self)))
 	}
 
-	fn tan(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn tan(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::tan(*self)))
 	}
 
-	fn asin(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn asin(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::asin(*self)))
 	}
 
-	fn acos(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn acos(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::acos(*self)))
 	}
 
-	fn atan(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn atan(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::atan(*self)))
 	}
 
-	fn atan2(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn atan2(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::atan2(*self, *other)))
 	}
 
-	fn floor(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn floor(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::floor(*self)))
 	}
 
-	fn ceil(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn ceil(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::ceil(*self)))
 	}
 
-	fn round(&self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn round(&self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::round(*self)))
 	}
 
-	fn log(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn log(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(f64::log(*self, *other)))
 	}
 }
