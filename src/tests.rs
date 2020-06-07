@@ -1,5 +1,5 @@
 use {eval, Answer, Calculation, Context, Expression, Num, Term};
-use num::{ComplexFloat, ComplexRugRat};
+use num::{ComplexFloat};
 
 #[test]
 fn plain() {

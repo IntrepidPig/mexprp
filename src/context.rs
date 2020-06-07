@@ -94,7 +94,7 @@ pub struct Context<N: Num> {
 	/// HashMap of variables
 	pub vars: HashMap<String, Term<N>>,
 	/// HashMap of functions
-	pub funcs: HashMap<String, Rc<Func<N>>>,
+	pub funcs: HashMap<String, Rc<dyn Func<N>>>,
 	/// The configuration used when evaluating expressions
 	pub cfg: Config,
 }

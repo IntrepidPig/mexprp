@@ -18,7 +18,7 @@ pub enum Term<N: Num> {
 	/// A number
 	Num(Answer<N>),
 	/// An operation
-	Operation(Rc<Operate<N>>),
+	Operation(Rc<dyn Operate<N>>),
 	/// A function with the given arguments
 	Function(String, Vec<Term<N>>),
 	/// A variable
@@ -334,7 +334,7 @@ fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>, ctx: &Context<N>) -> Result
 						}
 					}
 
-				let oper: Rc<Operate<N>> = match op {
+				let oper: Rc<dyn Operate<N>> = match op {
 					Op::In(op) => match op {
 						In::Add => Rc::new(Add {
 							b: pop!(),

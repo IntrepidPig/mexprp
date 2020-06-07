@@ -1,13 +1,13 @@
 use std::fmt;
-use std::rc::Rc;
 
-use op::*;
+
+
 use opers::*;
-use parse::*;
+
 use errors::*;
 use context::*;
 use num::*;
-use answer::*;
+
 use term::*;
 
 /// The main Expression struct. Contains the string that was originally requested to be parsed, the

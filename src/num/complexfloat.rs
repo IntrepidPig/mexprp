@@ -17,11 +17,11 @@ pub struct ComplexFloat {
 }
 
 impl Num for ComplexFloat {
-	fn from_f64(t: f64, ctx: &Context<Self>) -> Calculation<Self> {
+	fn from_f64(t: f64, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(ComplexFloat { r: t, i: 0.0 }))
 	}
 
-	fn from_f64_complex((r, i): (f64, f64), ctx: &Context<Self>) -> Calculation<Self> {
+	fn from_f64_complex((r, i): (f64, f64), _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 
@@ -29,7 +29,7 @@ impl Num for ComplexFloat {
 		String::from("ComplexFloat")
 	}
 
-	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
+	fn tryord(&self, other: &Self, _ctx: &Context<Self>) -> Result<Ordering, MathError> {
 		if let Some(ord) = self.partial_cmp(other) {
 			Ok(ord)
 		} else {
@@ -37,21 +37,21 @@ impl Num for ComplexFloat {
 		}
 	}
 
-	fn add(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn add(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		let r = self.r + other.r;
 		let i = self.i + other.i;
 
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 
-	fn sub(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn sub(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		let r = self.r - other.r;
 		let i = self.i - other.i;
 
 		Ok(Answer::Single(ComplexFloat { r, i }))
 	}
 
-	fn mul(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn mul(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		let r1 = self.r * other.r;
 		let i1 = self.r * other.i;
 		let i2 = self.i * other.r;
