@@ -1,11 +1,11 @@
 use std::f64;
 use std::cmp::Ordering;
 
-use opers::Calculation;
-use errors::MathError;
-use num::Num;
-use answer::Answer;
-use context::Context;
+use crate::opers::Calculation;
+use crate::errors::MathError;
+use crate::num::Num;
+use crate::answer::Answer;
+use crate::context::Context;
 
 impl Num for f64 {
 	fn from_f64(t: f64, _ctx: &Context<Self>) -> Calculation<Self> {

@@ -2,11 +2,11 @@ use std::fmt;
 use std::cmp::Ordering;
 
 use rug::Rational;
-use opers::Calculation;
-use errors::MathError;
-use answer::Answer;
-use num::Num;
-use context::Context;
+use crate::opers::Calculation;
+use crate::errors::MathError;
+use crate::answer::Answer;
+use crate::num::Num;
+use crate::context::Context;
 
 /// A complex number made of a real part and an imaginary part, both of which are `rug::Rationals`.
 /// Requires the `rug` feature.

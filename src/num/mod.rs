@@ -49,9 +49,9 @@ pub use self::complexrugrat::ComplexRugRat;
 #[cfg(feature = "rug")]
 pub use self::complexfloat::ComplexFloat;
 
-use opers::Calculation;
-use errors::MathError;
-use context::Context;
+use crate::opers::Calculation;
+use crate::errors::MathError;
+use crate::context::Context;
 
 /// A `Num` represents any type that can be used in an expression. It requires lots of operations to
 /// be implemented for it, any of which can fail, as well as the traits: Debug, Clone, Display, PartialOrd,

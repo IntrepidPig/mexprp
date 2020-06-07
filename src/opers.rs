@@ -1,10 +1,10 @@
 use std::fmt::Debug;
 
-use term::Term;
-use context::Context;
-use errors::MathError;
-use num::Num;
-use answer::Answer;
+use crate::term::Term;
+use crate::context::Context;
+use crate::errors::MathError;
+use crate::num::Num;
+use crate::answer::Answer;
 
 /// The result of an evaluation
 pub type Calculation<N> = Result<Answer<N>, MathError>;

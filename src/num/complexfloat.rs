@@ -1,11 +1,11 @@
 use std::fmt;
 use std::cmp::Ordering;
 
-use opers::Calculation;
-use num::Num;
-use answer::Answer;
-use errors::MathError;
-use context::Context;
+use crate::opers::Calculation;
+use crate::num::Num;
+use crate::answer::Answer;
+use crate::errors::MathError;
+use crate::context::Context;
 
 /// A complex number made of a real `f64` and an imaginary `f64`.
 #[derive(Debug, Clone)]

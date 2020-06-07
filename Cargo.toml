@@ -14,6 +14,8 @@ readme = "README.md"
 keywords = ["math", "expression", "parsing"]
 categories = ["parsing"]
 
+edition = "2018"
+
 [features]
 default = ["rug"]
 

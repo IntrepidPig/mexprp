@@ -1,5 +1,5 @@
-use num::Num;
-use opers::Calculation;
+use crate::num::Num;
+use crate::opers::Calculation;
 use std::fmt;
 
 /// An answer of an evaluatation. Can be either a single answer or multiple. This struct contains some
