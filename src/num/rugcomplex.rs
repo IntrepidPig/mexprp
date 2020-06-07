@@ -1,6 +1,6 @@
 use std::cmp::Ordering;
 
-use rug;
+
 use rug::Complex;
 use rug::ops::Pow;
 use opers::Calculation;
@@ -22,7 +22,7 @@ impl Num for Complex {
 		String::from("Complex")
 	}
 
-	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
+	fn tryord(&self, other: &Self, _ctx: &Context<Self>) -> Result<Ordering, MathError> {
 		if let Some(ord) = self.real().partial_cmp(other.real()) {
 			Ok(ord)
 		} else {

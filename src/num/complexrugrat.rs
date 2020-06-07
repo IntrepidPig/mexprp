@@ -19,7 +19,7 @@ pub struct ComplexRugRat {
 }
 
 impl Num for ComplexRugRat {
-	fn from_f64(t: f64, ctx: &Context<Self>) -> Calculation<Self> {
+	fn from_f64(t: f64, _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(ComplexRugRat {
 			r: {
 				if let Some(r) = Rational::from_f64(t) {
@@ -32,7 +32,7 @@ impl Num for ComplexRugRat {
 		}))
 	}
 
-	fn from_f64_complex((r, i): (f64, f64), ctx: &Context<Self>) -> Calculation<Self> {
+	fn from_f64_complex((r, i): (f64, f64), _ctx: &Context<Self>) -> Calculation<Self> {
 		Ok(Answer::Single(ComplexRugRat {
 			r: if let Some(r) = Rational::from_f64(r) {
 				r
@@ -51,7 +51,7 @@ impl Num for ComplexRugRat {
 		String::from("ComplexRugRat")
 	}
 
-	fn tryord(&self, other: &Self, ctx: &Context<Self>) -> Result<Ordering, MathError> {
+	fn tryord(&self, other: &Self, _ctx: &Context<Self>) -> Result<Ordering, MathError> {
 		if let Some(ord) = self.partial_cmp(other) {
 			Ok(ord)
 		} else {
@@ -59,21 +59,21 @@ impl Num for ComplexRugRat {
 		}
 	}
 
-	fn add(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn add(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		let r = Rational::from(&self.r + &other.r);
 		let i = Rational::from(&self.i + &other.i);
 
 		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
 
-	fn sub(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn sub(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		let r = Rational::from(&self.r - &other.r);
 		let i = Rational::from(&self.i - &other.i);
 
 		Ok(Answer::Single(ComplexRugRat { r, i }))
 	}
 
-	fn mul(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
+	fn mul(&self, other: &Self, _ctx: &Context<Self>) -> Calculation<Self> {
 		let r1 = Rational::from(&self.r * &other.r);
 		let i1 = Rational::from(&self.r * &other.i);
 		let i2 = Rational::from(&self.i * &other.r);
