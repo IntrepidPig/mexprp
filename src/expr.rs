@@ -13,7 +13,7 @@ use crate::term::*;
 /// The main Expression struct. Contains the string that was originally requested to be parsed, the
 /// context the Expression was parsed with, and the Term the raw form was parsed as. For just the
 /// parsed version of the expression, use the Term enum.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Expression<N: Num> {
 	/// The original string passed into this expression
 	pub string: String,
