@@ -113,9 +113,12 @@ impl Num for Complex {
 	}
 
 	fn floor(&self, ctx: &Context<Self>) -> Calculation<Self> {
-		let r = Complex::with_val(ctx.cfg.precision, Complex::sin_ref(self));
+		// Floor definition for complex numbers as defined by WolframAlpha https://mathworld.wolfram.com/FloorFunction.html
+		let r = Complex::real(self).floor_ref();
+		let i = Complex::imag(self).floor_ref();
+		let a = Complex::with_val(ctx.cfg.precision, (r, i));
 
-		Ok(Answer::Single(r))
+		Ok(Answer::Single(a))
 	}
 
 	fn log(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
