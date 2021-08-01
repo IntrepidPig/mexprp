@@ -1,7 +1,7 @@
-use term::Term;
-use context::Context;
-use opers::Calculation;
-use num::Num;
+use crate::term::Term;
+use crate::context::Context;
+use crate::opers::Calculation;
+use crate::num::Num;
 
 /// Implemented by functions defined in a context
 pub trait Func<N: Num> {

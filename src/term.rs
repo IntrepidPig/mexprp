@@ -1,14 +1,14 @@
 use std::fmt;
 use std::rc::Rc;
 
-use op::*;
-use opers::*;
-use parse::*;
-use errors::*;
-use context::*;
-use num::*;
-use answer::*;
-use expr::*;
+use crate::op::*;
+use crate::opers::*;
+use crate::parse::*;
+use crate::errors::*;
+use crate::context::*;
+use crate::num::*;
+use crate::answer::*;
+use crate::expr::*;
 
 /// The main representation of parsed equations. It is an operand that can contain an operation between
 /// more of itself. This form is the only one that can be directly evaluated. Does not include it's own
@@ -18,7 +18,7 @@ pub enum Term<N: Num> {
 	/// A number
 	Num(Answer<N>),
 	/// An operation
-	Operation(Rc<Operate<N>>),
+	Operation(Rc<dyn Operate<N>>),
 	/// A function with the given arguments
 	Function(String, Vec<Term<N>>),
 	/// A variable
@@ -334,7 +334,7 @@ fn postfix_to_term<N: Num + 'static>(raw: Vec<Expr>, ctx: &Context<N>) -> Result
 						}
 					}
 
-				let oper: Rc<Operate<N>> = match op {
+				let oper: Rc<dyn Operate<N>> = match op {
 					Op::In(op) => match op {
 						In::Add => Rc::new(Add {
 							b: pop!(),

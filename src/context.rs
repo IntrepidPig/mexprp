@@ -3,9 +3,9 @@ use std::f64::consts;
 use std::rc::Rc;
 use std::fmt;
 
-use term::Term;
-use func::Func;
-use num::Num;
+use crate::term::Term;
+use crate::func::Func;
+use crate::num::Num;
 
 /// A context holds values for variables and functions to be used in expressions. It is useful for both
 /// parsing and evaluation expressions. During parsing, all names will be treated as variables unless
@@ -94,7 +94,7 @@ pub struct Context<N: Num> {
 	/// HashMap of variables
 	pub vars: HashMap<String, Term<N>>,
 	/// HashMap of functions
-	pub funcs: HashMap<String, Rc<Func<N>>>,
+	pub funcs: HashMap<String, Rc<dyn Func<N>>>,
 	/// The configuration used when evaluating expressions
 	pub cfg: Config,
 }
@@ -200,16 +200,16 @@ impl<N: Num> fmt::Debug for Context<N> {
 	}
 }
 
-pub(in context) mod funcs {
+pub(in crate::context) mod funcs {
 	use std::cmp::Ordering;
 
-	use context::Context;
-	use term::Term;
-	use errors::MathError;
-	use func::Func;
-	use opers::Calculation;
-	use num::Num;
-	use answer::Answer;
+	use crate::context::Context;
+	use crate::term::Term;
+	use crate::errors::MathError;
+	use crate::func::Func;
+	use crate::opers::Calculation;
+	use crate::num::Num;
+	use crate::answer::Answer;
 
 	pub struct Sin;
 	impl<N: Num + 'static> Func<N> for Sin {
