@@ -1,17 +1,19 @@
+use thiserror::Error;
+
 /// An error that can occur during parsing
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum ParseError {
 	/// Got an unexpected token
-	#[fail(display = "Got unexpected token: '{}'", token)]
+	#[error("Got unexpected token: '{token}'")]
 	UnexpectedToken {
 		/// The token
 		token: String,
 	},
 	/// Parentheses didn't match
-	#[fail(display = "Parentheses didn't match")]
+	#[error("Parentheses didn't match")]
 	MismatchedParentheses,
 	/// Expected something but it wasn't found
-	#[fail(display = "Expected something that wasn't found: {}", expected)]
+	#[error("Expected something that wasn't found: {expected}")]
 	Expected {
 		/// The thing that was expected
 		expected: Expected,
@@ -19,34 +21,34 @@ pub enum ParseError {
 }
 
 /// An error that can occur while evaluating an expression
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum MathError {
 	/// A variable that was not defined in the context was referenced
-	#[fail(display = "Variable '{}' is not defined", name)]
+	#[error("Variable '{name}' is not defined")]
 	UndefinedVariable {
 		/// The name of the variable
 		name: String,
 	},
 	/// A function that was not defined in the context was referenced
-	#[fail(display = "Function '{}' is not defined", name)]
+	#[error("Function '{name}' is not defined")]
 	UndefinedFunction {
 		/// The name of the function
 		name: String,
 	},
 	/// A function was given arguments in an incorrect form
-	#[fail(display = "A function was passed incorrect arguments")]
+	#[error("A function was passed incorrect arguments")]
 	IncorrectArguments,
 	/// Attempted to divide by zero
-	#[fail(display = "Attempted to divide by zero")]
+	#[error("Attempted to divide by zero")]
 	DivideByZero,
 	/// A NaN value was used in a way that is not possible
-	#[fail(display = "A NaN value was attempted to be used as an operand")]
+	#[error("A NaN value was attempted to be used as an operand")]
 	NaN,
 	/// Tried to compare a value that can't be compared (eg NaN, Infinity, etc.)
-	#[fail(display = "Tried to compare a value that can't be compared (eg NaN, Infinity, etc.)")]
+	#[error("Tried to compare a value that can't be compared (eg NaN, Infinity, etc.)")]
 	CmpError,
 	/// Attempted an operation on a Number that wasn't implemented for that type
-	#[fail(display = "The operation '{}' is not supported for the type {}", op, num_type)]
+	#[error("The operation '{op}' is not supported for the type {num_type}")]
 	Unimplemented {
 		/// The name of the operation that was attempted
 		op: String,
@@ -54,21 +56,21 @@ pub enum MathError {
 		num_type: String,
 	},
 	/// Another type of Error occurred.
-	#[fail(display = "An unknown error occurred during evaluation")]
+	#[error("An unknown error occurred during evaluation")]
 	Other,
 }
 
 /// An error that occurs when evaluating a string
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum EvalError {
 	/// An error occurred during parsing
-	#[fail(display = "Failed to parse the expression: {}", error)]
+	#[error("Failed to parse the expression: {error}")]
 	ParseError {
 		/// The error
 		error: ParseError,
 	},
 	/// An error occurred during evaluation
-	#[fail(display = "Failed to evaluate the expression: {}", error)]
+	#[error("Failed to evaluate the expression: {error}")]
 	MathError {
 		/// The error
 		error: MathError,
@@ -88,18 +90,18 @@ impl From<MathError> for EvalError {
 }
 
 /// Expected a token but was not met
-#[derive(Debug, Fail)]
+#[derive(Debug, Error)]
 pub enum Expected {
 	/// Expected an operator
-	#[fail(display = "Expected another operator")]
+	#[error("Expected another operator")]
 	Operator,
 	/// Expected an expression
-	#[fail(display = "Expected another expression")]
+	#[error("Expected another expression")]
 	Expression,
 	/// Expected a parenthesis
-	#[fail(display = "Expected a parenthesis")]
+	#[error("Expected a parenthesis")]
 	Paren,
 	/// Expected a function
-	#[fail(display = "Expected a function")]
+	#[error("Expected a function")]
 	Function,
 }

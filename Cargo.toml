@@ -20,5 +20,5 @@ edition = "2018"
 default = ["rug"]
 
 [dependencies]
-failure = "0.1"
 rug = { version = "1.9", optional = true }
+thiserror = "1.0.26"
