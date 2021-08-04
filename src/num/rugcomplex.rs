@@ -120,6 +120,22 @@ impl Num for Complex {
 
 		Ok(Answer::Single(a))
 	}
+	
+	fn ceil(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		let r = Complex::real(self).ceil_ref();
+		let i = Complex::real(self).ceil_ref();
+		let a = Complex::with_val(ctx.cfg.precision, (r, i));
+		
+		Ok(Answer::Single(a))
+	}
+	
+	fn round(&self, ctx: &Context<Self>) -> Calculation<Self> {
+		let r = Complex::real(self).round_ref();
+		let i = Complex::real(self).round_ref();
+		let a = Complex::with_val(ctx.cfg.precision, (r, i));
+		
+		Ok(Answer::Single(a))
+	}
 
 	fn log(&self, other: &Self, ctx: &Context<Self>) -> Calculation<Self> {
 		let n = Complex::with_val(ctx.cfg.precision, Complex::log10_ref(self));
