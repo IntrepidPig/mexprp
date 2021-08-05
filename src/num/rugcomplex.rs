@@ -123,7 +123,7 @@ impl Num for Complex {
 	
 	fn ceil(&self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r = Complex::real(self).ceil_ref();
-		let i = Complex::real(self).ceil_ref();
+		let i = Complex::imag(self).ceil_ref();
 		let a = Complex::with_val(ctx.cfg.precision, (r, i));
 		
 		Ok(Answer::Single(a))
@@ -131,7 +131,7 @@ impl Num for Complex {
 	
 	fn round(&self, ctx: &Context<Self>) -> Calculation<Self> {
 		let r = Complex::real(self).round_ref();
-		let i = Complex::real(self).round_ref();
+		let i = Complex::imag(self).round_ref();
 		let a = Complex::with_val(ctx.cfg.precision, (r, i));
 		
 		Ok(Answer::Single(a))
