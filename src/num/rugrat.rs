@@ -59,4 +59,28 @@ impl Num for Rational {
 
 		Ok(Answer::Single(r))
 	}
+	
+	fn abs(&self, _ctx: &Context<Self>) -> Calculation<Self> {
+		let r = Rational::from(self.abs_ref());
+		
+		Ok(Answer::Single(r))
+	}
+	
+	fn floor(&self, _ctx: &Context<Self>) -> Calculation<Self> {
+		let r = Rational::from(self.floor_ref());
+		
+		Ok(Answer::Single(r))
+	}
+	
+	fn ceil(&self, _ctx: &Context<Self>) -> Calculation<Self> {
+		let r = Rational::from(self.ceil_ref());
+		
+		Ok(Answer::Single(r))
+	}
+	
+	fn round(&self, _ctx: &Context<Self>) -> Calculation<Self> {
+		let r = Rational::from(self.round_ref());
+		
+		Ok(Answer::Single(r))
+	}
 }
