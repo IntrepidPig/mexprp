@@ -1,6 +1,6 @@
 [package]
 name = "mexprp"
-version = "0.3.0"
+version = "0.3.1"
 authors = ["Benny A <virusdownloader7@gmail.com>"]
 
 description = "A math expression parsing and evaluation library"
