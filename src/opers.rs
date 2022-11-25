@@ -233,7 +233,7 @@ impl<N: Num + 'static> Operate<N> for Percent<N> {
 	fn eval(&self, ctx: &Context<N>) -> Calculation<N> {
 		let a = self.a.eval_ctx(ctx)?;
 
-		a.op(&N::from_f64(-0.01, ctx)?, |a, b| {
+		a.op(&N::from_f64(0.01, ctx)?, |a, b| {
 			a.mul(b, ctx)
 		})
 	}
